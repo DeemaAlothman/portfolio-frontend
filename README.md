@@ -1,36 +1,235 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Admin Dashboard
 
-## Getting Started
+لوحة تحكم متكاملة لإدارة البورتفوليو مبنية على Next.js 16 مع نظام مصادقة آمن.
 
-First, run the development server:
+## 🎨 التصميم
+
+التصميم مستوحى من نمط ألوان أسود وأبيض عصري مع تباين عالي، يوفر تجربة مستخدم راقية وسهلة الاستخدام.
+
+## ⚡ المميزات
+
+- ✅ نظام مصادقة كامل (تسجيل دخول، تسجيل، تسجيل خروج)
+- ✅ JWT Authentication
+- ✅ حماية الصفحات (Protected Routes)
+- ✅ إدارة الحالة باستخدام Context API
+- ✅ تصميم متجاوب (Responsive Design)
+- ✅ دعم اللغة العربية (RTL)
+- ✅ التحقق من صحة البيانات
+- ✅ رسائل خطأ واضحة
+- ✅ مؤشرات تحميل (Loading States)
+
+## 🛠️ التقنيات المستخدمة
+
+- **Next.js 16** - React Framework
+- **TypeScript** - Type Safety
+- **Tailwind CSS 4** - Styling
+- **Context API** - State Management
+- **JWT** - Authentication
+
+## 📋 المتطلبات
+
+- Node.js 18+
+- npm أو yarn أو pnpm
+- Backend API يعمل على المنفذ 5000
+
+## 🚀 التثبيت والتشغيل
+
+### 1. تثبيت المكتبات
+
+```bash
+npm install
+# أو
+yarn install
+# أو
+pnpm install
+```
+
+### 2. إعداد متغيرات البيئة
+
+قم بنسخ ملف `.env.example` إلى `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+تأكد من تحديث `NEXT_PUBLIC_API_URL` إذا كان Backend API الخاص بك يعمل على عنوان مختلف:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+### 3. تشغيل السيرفر
 
 ```bash
 npm run dev
-# or
+# أو
 yarn dev
-# or
+# أو
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+افتح المتصفح على [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 هيكل المشروع
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+portfolio-admin/
+├── src/
+│   ├── app/
+│   │   ├── auth/
+│   │   │   ├── login/         # صفحة تسجيل الدخول
+│   │   │   └── register/      # صفحة التسجيل
+│   │   ├── dashboard/         # صفحة لوحة التحكم
+│   │   ├── layout.tsx         # Root Layout
+│   │   ├── page.tsx           # الصفحة الرئيسية
+│   │   └── globals.css        # الأنماط العامة
+│   ├── components/
+│   │   ├── auth/
+│   │   │   ├── Button.tsx     # مكون الزر
+│   │   │   └── Input.tsx      # مكون حقل الإدخال
+│   │   └── layout/
+│   │       └── ProtectedRoute.tsx  # حماية الصفحات
+│   ├── contexts/
+│   │   └── AuthContext.tsx    # سياق المصادقة
+│   └── lib/
+│       └── api.ts             # خدمات API
+├── .env.local                 # متغيرات البيئة
+└── package.json
+```
 
-## Learn More
+## 🔑 API Endpoints المطلوبة
 
-To learn more about Next.js, take a look at the following resources:
+يجب أن يوفر Backend API الخاص بك هذه الـ Endpoints:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### POST /auth/register
+```json
+// Request
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "password123",
+  "role": "ADMIN"
+}
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+// Response
+{
+  "token": "jwt_token_here",
+  "user": {
+    "id": "1",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "ADMIN"
+  }
+}
+```
 
-## Deploy on Vercel
+### POST /auth/login
+```json
+// Request
+{
+  "email": "admin@example.com",
+  "password": "password123"
+}
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+// Response
+{
+  "token": "jwt_token_here",
+  "user": {
+    "id": "1",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "ADMIN"
+  }
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### GET /auth/me
+```json
+// Headers
+{
+  "Authorization": "Bearer jwt_token_here"
+}
+
+// Response
+{
+  "id": "1",
+  "email": "admin@example.com",
+  "name": "Admin User",
+  "role": "ADMIN",
+  "createdAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## 🎯 الاستخدام
+
+### 1. الصفحة الرئيسية
+- عرض مقدمة عن النظام
+- أزرار التنقل لتسجيل الدخول أو إنشاء حساب
+
+### 2. التسجيل (/auth/register)
+- إنشاء حساب جديد
+- التحقق من صحة البيانات
+- إعادة التوجيه التلقائي للوحة التحكم
+
+### 3. تسجيل الدخول (/auth/login)
+- تسجيل الدخول بالبريد الإلكتروني وكلمة المرور
+- حفظ الـ Token في LocalStorage
+- إعادة التوجيه للوحة التحكم
+
+### 4. لوحة التحكم (/dashboard)
+- صفحة محمية تتطلب تسجيل الدخول
+- عرض معلومات المستخدم
+- زر تسجيل الخروج
+
+## 🔒 الأمان
+
+- جميع الصفحات المحمية تتطلب JWT صالح
+- التحقق من صحة البيانات في الواجهة الأمامية
+- تخزين آمن للـ Token في LocalStorage
+- إعادة توجيه تلقائية للمستخدمين غير المصادقين
+
+## 🎨 التخصيص
+
+### تغيير الألوان
+
+عدّل ملف [src/app/globals.css](src/app/globals.css:1):
+
+```css
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #ffffff;
+  --secondary: #1a1a1a;
+  --accent: #383838;
+  --border: rgba(255, 255, 255, 0.145);
+  --error: #ef4444;
+  --success: #10b981;
+}
+```
+
+## 📝 ملاحظات
+
+- تأكد من تشغيل Backend API قبل استخدام التطبيق
+- الـ Token يُحفظ في LocalStorage ويبقى حتى تسجيل الخروج
+- النظام يدعم اللغة العربية بالكامل مع RTL
+
+## 🐛 المشاكل الشائعة
+
+### خطأ في الاتصال بالـ API
+تأكد من:
+1. تشغيل Backend API على المنفذ الصحيح
+2. تحديث `NEXT_PUBLIC_API_URL` في `.env.local`
+3. تفعيل CORS في Backend API
+
+### الصفحة لا تعيد التوجيه
+1. امسح LocalStorage في المتصفح
+2. أعد تحميل الصفحة
+3. تأكد من صحة الـ Token
+
+## 📄 الترخيص
+
+MIT License
+
+## 👨‍💻 التطوير
+
+تم بناء هذا المشروع باستخدام أحدث تقنيات الويب مع التركيز على الأداء وتجربة المستخدم.

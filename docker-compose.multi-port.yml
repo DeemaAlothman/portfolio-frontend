@@ -1,0 +1,64 @@
+version: '3.8'
+
+# ملف Docker Compose لتشغيل عدة نسخ على بورتات مختلفة
+# للاستخدام: docker-compose -f docker-compose.multi-port.yml up -d
+
+services:
+  # Frontend على بورت 3010
+  portfolio-frontend-3010:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend-3010
+    ports:
+      - "3010:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://217.76.53.136:3000
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+  # Frontend على بورت 3011 (نسخة تجريبية/staging)
+  portfolio-frontend-3011:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend-3011
+    ports:
+      - "3011:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://217.76.53.136:3000
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+    profiles:
+      - staging
+
+  # Frontend على بورت 4000 (نسخة development)
+  portfolio-frontend-4000:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend-4000
+    ports:
+      - "4000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://217.76.53.136:3000
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+    profiles:
+      - dev
+
+networks:
+  portfolio-network:
+    driver: bridge
