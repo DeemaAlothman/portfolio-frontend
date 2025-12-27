@@ -69,6 +69,12 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     if (!formData.clientId) newErrors.clientId = "معرف العميل مطلوب";
     if (!formData.title) newErrors.title = "العنوان مطلوب";
 
+    // للريلز: الفيديو إلزامي عند الإنشاء
+    if (formData.type === "REEL" && mode === "create" && !file) {
+      newErrors.file = "يجب رفع فيديو الريلز";
+      setError("يجب رفع فيديو الريلز قبل الإنشاء");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -279,26 +285,51 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
 
       {/* File Upload */}
       <div className="pt-6 border-t-2 border-border">
-        <h3 className="text-lg font-semibold text-primary mb-4">صورة العمل</h3>
+        <h3 className="text-lg font-semibold text-primary mb-4">
+          {formData.type === "REEL" ? "فيديو الريلز" : "صورة العمل"}
+        </h3>
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            رفع صورة
+            {formData.type === "REEL" ? "رفع فيديو *" : "رفع صورة"}
           </label>
           <input
             type="file"
-            accept="image/*,video/*"
+            accept={formData.type === "REEL" ? "video/*" : "image/*,video/*"}
             onChange={handleFileChange}
             className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
           />
+          {formData.type === "REEL" && (
+            <p className="mt-2 text-sm text-foreground/60">
+              📹 قم برفع الفيديو مباشرة (حد أقصى: 100MB، مدة: 10 دقائق للرفع)
+            </p>
+          )}
         </div>
 
         {previewUrl && (
           <div className="mt-4">
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="max-w-sm h-auto rounded-lg border-2 border-border"
-            />
+            {formData.type === "REEL" || file?.type.startsWith("video/") ? (
+              <video
+                src={previewUrl}
+                controls
+                className="max-w-sm h-auto rounded-lg border-2 border-border"
+              >
+                المتصفح لا يدعم تشغيل الفيديو
+              </video>
+            ) : (
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="max-w-sm h-auto rounded-lg border-2 border-border"
+              />
+            )}
+          </div>
+        )}
+
+        {formData.type === "REEL" && !file && mode === "create" && (
+          <div className="mt-4 p-4 bg-primary/10 border-2 border-primary/20 rounded-lg">
+            <p className="text-sm text-primary font-medium">
+              💡 نصيحة: للفيديوهات الكبيرة (أكثر من 50MB)، استخدم YouTube وضع الرابط في حقل "رابط الزيارة"
+            </p>
           </div>
         )}
       </div>
