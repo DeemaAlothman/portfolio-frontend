@@ -75,6 +75,12 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       setError("يجب رفع فيديو الريلز قبل الإنشاء");
     }
 
+    // للمواقع: رابط الزيارة إلزامي
+    if (formData.type === "WEBSITE" && !formData.visitUrl) {
+      newErrors.visitUrl = "رابط الموقع مطلوب";
+      setError("يجب إضافة رابط الموقع الإلكتروني");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -224,14 +230,16 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           onChange={(e) => setFormData({ ...formData, publishDate: e.target.value })}
         />
 
-        {/* Visit URL */}
-        <Input
-          label="رابط الزيارة"
-          type="url"
-          placeholder="https://example.com"
-          value={formData.visitUrl}
-          onChange={(e) => setFormData({ ...formData, visitUrl: e.target.value })}
-        />
+        {/* Visit URL - يظهر فقط للمواقع الإلكترونية */}
+        {formData.type === "WEBSITE" && (
+          <Input
+            label="رابط الزيارة *"
+            type="url"
+            placeholder="https://example.com"
+            value={formData.visitUrl}
+            onChange={(e) => setFormData({ ...formData, visitUrl: e.target.value })}
+          />
+        )}
       </div>
 
       {/* Featured Checkbox */}
