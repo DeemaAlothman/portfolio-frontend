@@ -76,7 +76,8 @@ export interface CreateWorkData {
   seoDescription?: string;
   seoKeywords?: string;
   tagIds?: string[];
-  file?: File;
+  file?: File; // ملف واحد (للريلز، اللوجو، الموقع)
+  files?: File[]; // ملفات متعددة (للسوشال ميديا)
 }
 
 class ApiError extends Error {
@@ -163,8 +164,16 @@ export const worksAPI = {
       formData.append("tagIds", JSON.stringify(data.tagIds));
     }
 
+    // رفع ملف واحد (للريلز، اللوجو، الموقع)
     if (data.file) {
-      formData.append("file", data.file);
+      formData.append("media", data.file);
+    }
+
+    // رفع ملفات متعددة (للسوشال ميديا)
+    if (data.files && data.files.length > 0) {
+      data.files.forEach((file) => {
+        formData.append("media", file);
+      });
     }
 
     return fetchAPI("/works", {

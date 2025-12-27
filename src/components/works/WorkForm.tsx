@@ -17,9 +17,11 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]); // للصور المتعددة (سوشال ميديا)
   const [previewUrl, setPreviewUrl] = useState<string>(
     work?.media?.[0]?.fileUrl ? `${process.env.NEXT_PUBLIC_API_URL}${work.media[0].fileUrl}` : ""
   );
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]); // معاينة الصور المتعددة
   const [clients, setClients] = useState<Client[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
 
@@ -63,6 +65,31 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     }
   };
 
+  // معالجة رفع ملفات متعددة (للسوشال ميديا)
+  const handleMultipleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+
+    // حد أقصى 10 صور
+    if (selectedFiles.length > 10) {
+      setError("يمكنك رفع 10 صور كحد أقصى");
+      return;
+    }
+
+    setFiles(selectedFiles);
+
+    // إنشاء معاينات للصور
+    const urls = selectedFiles.map(file => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+  };
+
+  // حذف صورة من القائمة
+  const removeFile = (index: number) => {
+    const newFiles = files.filter((_, i) => i !== index);
+    const newUrls = previewUrls.filter((_, i) => i !== index);
+    setFiles(newFiles);
+    setPreviewUrls(newUrls);
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -81,6 +108,18 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       setError("يجب إضافة رابط الموقع الإلكتروني");
     }
 
+    // للسوشال ميديا: صور متعددة إلزامية (على الأقل صورة واحدة)
+    if (formData.type === "SOCIAL_MEDIA" && mode === "create" && files.length === 0) {
+      newErrors.files = "يجب رفع صورة واحدة على الأقل";
+      setError("يجب رفع صورة واحدة على الأقل للسوشال ميديا");
+    }
+
+    // للوجو: صورة إلزامية
+    if (formData.type === "LOGO" && mode === "create" && !file) {
+      newErrors.file = "يجب رفع صورة الشعار";
+      setError("يجب رفع صورة الشعار");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -97,7 +136,10 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       const data: CreateWorkData = {
         ...formData,
         isFeatured: formData.isFeatured,
-        file: file || undefined,
+        // للسوشال ميديا: صور متعددة
+        files: formData.type === "SOCIAL_MEDIA" ? files : undefined,
+        // للريلز، اللوجو، الموقع: ملف واحد
+        file: formData.type !== "SOCIAL_MEDIA" ? (file || undefined) : undefined,
       };
 
       if (mode === "create") {
@@ -294,26 +336,70 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       {/* File Upload */}
       <div className="pt-6 border-t-2 border-border">
         <h3 className="text-lg font-semibold text-primary mb-4">
-          {formData.type === "REEL" ? "فيديو الريلز" : "صورة العمل"}
+          {formData.type === "REEL" && "فيديو الريلز"}
+          {formData.type === "LOGO" && "صورة الشعار"}
+          {formData.type === "WEBSITE" && "صورة الموقع (Screenshot)"}
+          {formData.type === "SOCIAL_MEDIA" && "صور السوشال ميديا"}
         </h3>
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            {formData.type === "REEL" ? "رفع فيديو *" : "رفع صورة"}
-          </label>
-          <input
-            type="file"
-            accept={formData.type === "REEL" ? "video/*" : "image/*,video/*"}
-            onChange={handleFileChange}
-            className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
-          />
-          {formData.type === "REEL" && (
-            <p className="mt-2 text-sm text-foreground/60">
-              📹 قم برفع الفيديو مباشرة (حد أقصى: 100MB، مدة: 10 دقائق للرفع)
-            </p>
-          )}
-        </div>
 
-        {previewUrl && (
+        {/* رفع ملف واحد (للريلز، اللوجو، الموقع) */}
+        {formData.type !== "SOCIAL_MEDIA" && (
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              {formData.type === "REEL" && "رفع فيديو *"}
+              {formData.type === "LOGO" && "رفع صورة الشعار *"}
+              {formData.type === "WEBSITE" && "رفع صورة *"}
+            </label>
+            <input
+              type="file"
+              accept={formData.type === "REEL" ? "video/*" : "image/*"}
+              onChange={handleFileChange}
+              className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+            />
+            {formData.type === "REEL" && (
+              <p className="mt-2 text-sm text-foreground/60">
+                📹 قم برفع الفيديو مباشرة (حد أقصى: 100MB، مدة: 10 دقائق للرفع)
+              </p>
+            )}
+            {formData.type === "LOGO" && (
+              <p className="mt-2 text-sm text-foreground/60">
+                🎨 موصى به: PNG مع خلفية شفافة، حجم 500x500 بكسل
+              </p>
+            )}
+            {formData.type === "WEBSITE" && (
+              <p className="mt-2 text-sm text-foreground/60">
+                🖼️ ارفع لقطة شاشة للموقع (Screenshot)
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* رفع ملفات متعددة (للسوشال ميديا فقط) */}
+        {formData.type === "SOCIAL_MEDIA" && (
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              رفع صور متعددة * (حتى 10 صور)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleMultipleFilesChange}
+              className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+            />
+            <p className="mt-2 text-sm text-foreground/60">
+              📸 يمكنك رفع حتى 10 صور (JPG, PNG, GIF)
+            </p>
+            {files.length > 0 && (
+              <p className="mt-1 text-sm text-primary font-medium">
+                تم اختيار {files.length} صورة
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* معاينة ملف واحد */}
+        {previewUrl && formData.type !== "SOCIAL_MEDIA" && (
           <div className="mt-4">
             {formData.type === "REEL" || file?.type.startsWith("video/") ? (
               <video
@@ -333,10 +419,40 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           </div>
         )}
 
+        {/* معاينة الصور المتعددة */}
+        {previewUrls.length > 0 && formData.type === "SOCIAL_MEDIA" && (
+          <div className="mt-4">
+            <h4 className="text-sm font-medium text-foreground mb-3">
+              معاينة الصور ({previewUrls.length})
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {previewUrls.map((url, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={url}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border-2 border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="absolute top-2 right-2 bg-error text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    ×
+                  </button>
+                  <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                    {index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {formData.type === "REEL" && !file && mode === "create" && (
           <div className="mt-4 p-4 bg-primary/10 border-2 border-primary/20 rounded-lg">
             <p className="text-sm text-primary font-medium">
-              💡 نصيحة: للفيديوهات الكبيرة (أكثر من 50MB)، استخدم YouTube وضع الرابط في حقل "رابط الزيارة"
+              💡 نصيحة: للفيديوهات الكبيرة (أكثر من 50MB)، استخدم YouTube
             </p>
           </div>
         )}
