@@ -130,17 +130,17 @@ export const worksAPI = {
     if (filters?.clientType) params.append("clientType", filters.clientType);
 
     const queryString = params.toString();
-    const endpoint = queryString ? `/works?${queryString}` : "/works";
+    const endpoint = queryString ? `/api/portfolio?${queryString}` : "/api/portfolio";
 
     return fetchAPI(endpoint);
   },
 
   async getBySlug(slug: string): Promise<Work> {
-    return fetchAPI(`/works/${slug}`);
+    return fetchAPI(`/api/portfolio/${slug}`);
   },
 
   async getById(id: string): Promise<Work> {
-    return fetchAPI(`/works/id/${id}`);
+    return fetchAPI(`/api/portfolio/id/${id}`);
   },
 
   async create(data: CreateWorkData): Promise<Work> {
@@ -176,21 +176,21 @@ export const worksAPI = {
       });
     }
 
-    return fetchAPI("/works", {
+    return fetchAPI("/api/portfolio", {
       method: "POST",
       body: formData,
     });
   },
 
   async update(id: string, data: Partial<CreateWorkData>): Promise<Work> {
-    return fetchAPI(`/works/${id}`, {
-      method: "PATCH",
+    return fetchAPI(`/api/portfolio/${id}`, {
+      method: "PUT",
       body: JSON.stringify(data),
     });
   },
 
   async delete(id: string): Promise<{ message: string }> {
-    return fetchAPI(`/works/${id}`, {
+    return fetchAPI(`/api/portfolio/${id}`, {
       method: "DELETE",
     });
   },

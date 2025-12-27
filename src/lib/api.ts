@@ -68,7 +68,7 @@ async function fetchAPI(
 
 export const authAPI = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const data = await fetchAPI("/auth/login", {
+    const data = await fetchAPI("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(credentials),
     });
@@ -81,7 +81,7 @@ export const authAPI = {
   },
 
   async register(registerData: RegisterData): Promise<AuthResponse> {
-    const data = await fetchAPI("/auth/register", {
+    const data = await fetchAPI("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(registerData),
     });
@@ -94,7 +94,7 @@ export const authAPI = {
   },
 
   async getMe(): Promise<User> {
-    return fetchAPI("/auth/me");
+    return fetchAPI("/api/auth/me");
   },
 
   logout() {

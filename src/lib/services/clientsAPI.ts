@@ -79,17 +79,17 @@ export const clientsAPI = {
     if (filters?.type) params.append("type", filters.type);
 
     const queryString = params.toString();
-    const endpoint = queryString ? `/clients?${queryString}` : "/clients";
+    const endpoint = queryString ? `/api/companies?${queryString}` : "/api/companies";
 
     return fetchAPI(endpoint);
   },
 
   async getBySlug(slug: string): Promise<Client> {
-    return fetchAPI(`/clients/${slug}`);
+    return fetchAPI(`/api/companies/${slug}`);
   },
 
   async getById(id: string): Promise<Client> {
-    return fetchAPI(`/clients/id/${id}`);
+    return fetchAPI(`/api/companies/id/${id}`);
   },
 
   async create(data: CreateClientData): Promise<Client> {
@@ -107,7 +107,7 @@ export const clientsAPI = {
       formData.append("logo", data.logo);
     }
 
-    return fetchAPI("/clients", {
+    return fetchAPI("/api/companies", {
       method: "POST",
       body: formData,
     });
@@ -127,14 +127,14 @@ export const clientsAPI = {
       formData.append("logo", data.logo);
     }
 
-    return fetchAPI(`/clients/${id}`, {
-      method: "PATCH",
+    return fetchAPI(`/api/companies/${id}`, {
+      method: "PUT",
       body: formData,
     });
   },
 
   async delete(id: string): Promise<{ message: string }> {
-    return fetchAPI(`/clients/${id}`, {
+    return fetchAPI(`/api/companies/${id}`, {
       method: "DELETE",
     });
   },
