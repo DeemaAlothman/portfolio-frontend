@@ -1,20 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Button from "@/components/auth/Button";
-import { worksAPI, Work, WorkType, WorkStatus } from "@/lib/services/worksAPI";
+import { worksAPI, Work, WorkType, CategoryType } from "@/lib/services/worksAPI";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import Link from "next/link";
 
 function WorksContent() {
-  const router = useRouter();
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filters, setFilters] = useState({
     type: "" as WorkType | "",
-    status: "" as WorkStatus | "",
+    category: "" as CategoryType | "",
+  });
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; work: Work | null }>({
+    isOpen: false,
+    work: null,
   });
 
   useEffect(() => {
@@ -27,24 +30,32 @@ function WorksContent() {
       setError("");
       const data = await worksAPI.getAll({
         ...(filters.type && { type: filters.type as WorkType }),
-        ...(filters.status && { status: filters.status as WorkStatus }),
+        ...(filters.category && { category: filters.category as CategoryType }),
       });
-      setWorks(data);
+      // تحقق إذا البيانات array
+      setWorks(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError(err.message || "فشل تحميل الأعمال");
+      setWorks([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا العمل؟")) return;
+  const handleDeleteClick = (work: Work) => {
+    setDeleteModal({ isOpen: true, work });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.work) return;
 
     try {
-      await worksAPI.delete(id);
-      setWorks(works.filter((work) => work.id !== id));
+      await worksAPI.delete(deleteModal.work.id);
+      setWorks(works.filter((work) => work.id !== deleteModal.work!.id));
+      setDeleteModal({ isOpen: false, work: null });
     } catch (err: any) {
-      alert(err.message || "فشل حذف العمل");
+      setError(err.message || "فشل حذف العمل");
+      setDeleteModal({ isOpen: false, work: null });
     }
   };
 
@@ -58,22 +69,20 @@ function WorksContent() {
     return labels[type];
   };
 
-  const getStatusBadge = (status: WorkStatus) => {
-    const styles: Record<WorkStatus, string> = {
-      PUBLISHED: "bg-success/20 text-success",
-      DRAFT: "bg-accent text-foreground",
-      ARCHIVED: "bg-error/20 text-error",
+  const getCategoryBadge = (category: CategoryType) => {
+    const styles: Record<CategoryType, string> = {
+      INDIVIDUAL: "bg-primary/20 text-primary",
+      CORPORATE: "bg-accent text-foreground",
     };
 
-    const labels: Record<WorkStatus, string> = {
-      PUBLISHED: "منشور",
-      DRAFT: "مسودة",
-      ARCHIVED: "مؤرشف",
+    const labels: Record<CategoryType, string> = {
+      INDIVIDUAL: "فرد",
+      CORPORATE: "شركة",
     };
 
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
-        {labels[status]}
+      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[category]}`}>
+        {labels[category]}
       </span>
     );
   };
@@ -116,23 +125,22 @@ function WorksContent() {
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                الحالة
+                الفئة
               </label>
               <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value as WorkStatus | "" })}
+                value={filters.category}
+                onChange={(e) => setFilters({ ...filters, category: e.target.value as CategoryType | "" })}
                 className="w-full px-4 py-2 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none"
               >
                 <option value="">الكل</option>
-                <option value="PUBLISHED">منشور</option>
-                <option value="DRAFT">مسودة</option>
-                <option value="ARCHIVED">مؤرشف</option>
+                <option value="INDIVIDUAL">أفراد</option>
+                <option value="CORPORATE">شركات</option>
               </select>
             </div>
 
             <div className="flex items-end">
               <button
-                onClick={() => setFilters({ type: "", status: "" })}
+                onClick={() => setFilters({ type: "", category: "" })}
                 className="w-full px-4 py-2 rounded-lg border-2 border-border text-foreground hover:bg-accent transition-colors"
               >
                 إعادة تعيين
@@ -167,23 +175,58 @@ function WorksContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {works.map((work) => (
+                {works.map((work) => {
+                  // تحديد الصورة أو الفيديو
+                  // للسوشيال ميديا: استخدم mediaUrls (array)
+                  // للبقية: استخدم mediaUrl (string واحد)
+                  const isSocialMedia = work.type === "SOCIAL_MEDIA";
+                  const isVideo = work.type === "REEL";
+
+                  // للسوشيال ميديا نعرض أول صورة من الـ array
+                  const mediaUrl = isSocialMedia && work.mediaUrls && work.mediaUrls.length > 0
+                    ? work.mediaUrls[0]
+                    : work.mediaUrl;
+
+                  return (
                   <div
                     key={work.id}
                     className="bg-white rounded-lg border-2 border-border hover:shadow-lg transition-all overflow-hidden"
                   >
-                    {/* Image */}
-                    {work.media && work.media.length > 0 ? (
+                    {/* Image/Video */}
+                    {mediaUrl ? (
                       <div className="aspect-video bg-secondary relative">
-                        <img
-                          src={`${API_BASE_URL}${work.media[0].fileUrl}`}
-                          alt={work.title}
-                          className="w-full h-full object-cover"
-                        />
+                        {isVideo ? (
+                          <video
+                            src={mediaUrl}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={mediaUrl}
+                            alt={work.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.error("Image load error:", mediaUrl);
+                              e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.3em'%3E🖼️%3C/text%3E%3C/svg%3E";
+                            }}
+                          />
+                        )}
+                        {/* مؤشر عدد الصور للسوشيال ميديا */}
+                        {isSocialMedia && work.mediaUrls && work.mediaUrls.length > 1 && (
+                          <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded-lg text-xs">
+                            +{work.mediaUrls.length - 1} صور
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="aspect-video bg-secondary flex items-center justify-center">
-                        <span className="text-4xl">🖼️</span>
+                        <span className="text-4xl">
+                          {work.type === "LOGO" && "🏷️"}
+                          {work.type === "WEBSITE" && "🌐"}
+                          {work.type === "SOCIAL_MEDIA" && "📱"}
+                          {work.type === "REEL" && "🎬"}
+                        </span>
                       </div>
                     )}
 
@@ -193,21 +236,26 @@ function WorksContent() {
                         <h3 className="text-lg font-semibold text-primary line-clamp-1">
                           {work.title}
                         </h3>
-                        {getStatusBadge(work.status)}
+                        {getCategoryBadge(work.category)}
                       </div>
 
                       <div className="space-y-2 mb-4">
                         <p className="text-sm text-foreground/70">
                           <span className="font-medium">النوع:</span> {getTypeLabel(work.type)}
                         </p>
-                        {work.client && (
+                        {work.company && (
                           <p className="text-sm text-foreground/70">
-                            <span className="font-medium">العميل:</span> {work.client.name}
+                            <span className="font-medium">الشركة:</span> {work.company.name}
                           </p>
                         )}
-                        {work.shortDesc && (
+                        {work.clientName && (
+                          <p className="text-sm text-foreground/70">
+                            <span className="font-medium">العميل:</span> {work.clientName}
+                          </p>
+                        )}
+                        {work.description && (
                           <p className="text-sm text-foreground/60 line-clamp-2">
-                            {work.shortDesc}
+                            {work.description}
                           </p>
                         )}
                       </div>
@@ -220,7 +268,7 @@ function WorksContent() {
                           </button>
                         </Link>
                         <button
-                          onClick={() => handleDelete(work.id)}
+                          onClick={() => handleDeleteClick(work)}
                           className="px-4 py-2 rounded-lg border-2 border-error text-error hover:bg-error/10 transition-colors text-sm"
                         >
                           حذف
@@ -228,17 +276,28 @@ function WorksContent() {
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
             )}
           </>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, work: null })}
+        onConfirm={handleDeleteConfirm}
+        title="حذف العمل"
+        message={`هل أنت متأكد من حذف العمل "${deleteModal.work?.title}"؟\n\nسيتم حذف العمل نهائياً ولا يمكن التراجع عن هذا الإجراء.`}
+        confirmText="حذف"
+        cancelText="إلغاء"
+        variant="danger"
+      />
     </div>
   );
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function WorksPage() {
   return (

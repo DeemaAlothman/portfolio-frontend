@@ -1,6 +1,8 @@
 // src/lib/services/contactAPI.ts
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+export type ContactStatus = "UNREAD" | "READ" | "ARCHIVED";
 
 export interface ContactSubmission {
   id: string;
@@ -9,8 +11,10 @@ export interface ContactSubmission {
   phone?: string | null;
   subject?: string | null;
   message: string;
-  isRead: boolean;
+  status: ContactStatus;
+  isRead: boolean; // للتوافق مع الكود القديم
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface SubmissionsResponse {
@@ -21,6 +25,13 @@ export interface SubmissionsResponse {
     limit: number;
     offset: number;
   };
+}
+
+export interface ContactStats {
+  total: number;
+  unread: number;
+  read: number;
+  archived: number;
 }
 
 class ApiError extends Error {
@@ -54,7 +65,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 }
 
 export const contactAPI = {
-  // ✅ جلب جميع رسائل التواصل (Admin)
+  // Admin: جلب جميع رسائل التواصل
   async getSubmissions(
     isRead?: boolean,
     limit = 50,
@@ -65,28 +76,95 @@ export const contactAPI = {
       offset: offset.toString(),
     });
 
+    // Backend الجديد يستخدم status بدل isRead
     if (isRead !== undefined) {
-      params.append("isRead", isRead.toString());
+      params.append("status", isRead ? "READ" : "UNREAD");
     }
 
-    return fetchWithAuth(`${API_URL}/api/contact/submissions?${params}`);
+    const response = await fetchWithAuth(`${API_URL}/api/contact/submissions?${params}`);
+
+    // تحويل status إلى isRead للتوافق مع الكود القديم
+    if (response.submissions) {
+      response.data = response.submissions.map((sub: ContactSubmission) => ({
+        ...sub,
+        isRead: sub.status === "READ",
+      }));
+      response.pagination = {
+        total: response.count || 0,
+        limit,
+        offset,
+      };
+    }
+
+    return response;
   },
 
-  // ✅ تحديد رسالة كمقروءة (Admin)
+  // Admin: جلب رسالة محددة
+  async getById(id: string): Promise<ContactSubmission> {
+    const response = await fetchWithAuth(`${API_URL}/api/contact/submissions/${id}`);
+    const submission = response.submission || response;
+    return {
+      ...submission,
+      isRead: submission.status === "READ",
+    };
+  },
+
+  // Admin: جلب إحصائيات الرسائل
+  async getStats(): Promise<ContactStats> {
+    const response = await fetchWithAuth(`${API_URL}/api/contact/submissions/stats`);
+    return response.stats || response;
+  },
+
+  // Admin: تحديد رسالة كمقروءة
   async markAsRead(id: string): Promise<ContactSubmission> {
     const response = await fetchWithAuth(
-      `${API_URL}/api/contact/submissions/${id}/read`,
+      `${API_URL}/api/contact/submissions/${id}/status`,
       {
         method: "PATCH",
+        body: JSON.stringify({ status: "READ" }),
       }
     );
-    return response.data;
+    const submission = response.submission || response.data;
+    return {
+      ...submission,
+      isRead: submission.status === "READ",
+    };
   },
 
-  // ✅ حذف رسالة (Admin)
+  // Admin: تحديث حالة رسالة
+  async updateStatus(id: string, status: ContactStatus): Promise<ContactSubmission> {
+    const response = await fetchWithAuth(
+      `${API_URL}/api/contact/submissions/${id}/status`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }
+    );
+    const submission = response.submission || response;
+    return {
+      ...submission,
+      isRead: submission.status === "READ",
+    };
+  },
+
+  // Admin: حذف رسالة
   async delete(id: string): Promise<{ message: string }> {
     return fetchWithAuth(`${API_URL}/api/contact/submissions/${id}`, {
       method: "DELETE",
+    });
+  },
+
+  // Public: إرسال رسالة تواصل جديدة
+  async submit(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    subject?: string;
+    message: string;
+  }): Promise<{ submission: ContactSubmission }> {
+    return fetchWithAuth(`${API_URL}/api/contact`, {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   },
 };

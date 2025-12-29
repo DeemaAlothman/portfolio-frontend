@@ -2,39 +2,31 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL";
 export type WorkStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
-export type ClientType = "COMPANY" | "INDIVIDUAL";
+export type CategoryType = "INDIVIDUAL" | "CORPORATE";
 
 export interface Work {
   id: string;
-  clientId: string;
-  type: WorkType;
-  status: WorkStatus;
   title: string;
+  description?: string;
+  type: WorkType;
+  category: CategoryType;
+  clientName?: string; // للأفراد
+  companyId?: string; // للشركات
+  websiteUrl?: string; // للمواقع الإلكترونية
   slug: string;
-  shortDesc?: string;
-  heroSubtitle?: string;
-  publishDate?: string;
-  visitUrl?: string;
-  isFeatured: boolean;
-  coverImageUrl?: string;
-  thumbnailUrl?: string;
-  videoUrl?: string;
-  duration?: number;
-  category?: string;
-  sortOrder: number;
-  viewCount: number;
-  seoTitle?: string;
-  seoDescription?: string;
-  seoKeywords?: string;
   createdAt: string;
   updatedAt: string;
-  client?: {
+  // الباك إند الآن يرجع URLs جاهزة
+  mediaUrl?: string; // للشعار، الموقع، الريلز (ملف واحد)
+  mediaType?: string; // IMAGE أو VIDEO
+  mediaUrls?: string[]; // للسوشيال ميديا (صور متعددة)
+  company?: {
     id: string;
     name: string;
-    type: ClientType;
+    logo?: string; // URL كامل للوغو الشركة
   };
+  // القديم - للتوافق مع الكود القديم
   media?: Media[];
-  tags?: WorkTag[];
 }
 
 export interface Media {
@@ -48,34 +40,20 @@ export interface Media {
   sortOrder: number;
 }
 
-export interface WorkTag {
-  tag: {
-    id: string;
-    name: string;
-  };
-}
-
 export interface WorksFilters {
-  status?: WorkStatus;
   type?: WorkType;
-  clientId?: string;
-  clientType?: ClientType;
+  category?: CategoryType;
+  companyId?: string;
 }
 
 export interface CreateWorkData {
-  clientId: string;
-  type: WorkType;
-  status?: WorkStatus;
   title: string;
-  shortDesc?: string;
-  heroSubtitle?: string;
-  publishDate?: string;
-  visitUrl?: string;
-  isFeatured?: boolean;
-  seoTitle?: string;
-  seoDescription?: string;
-  seoKeywords?: string;
-  tagIds?: string[];
+  description?: string;
+  type: WorkType;
+  category: CategoryType;
+  clientName?: string; // مطلوب للأفراد
+  companyId?: string; // مطلوب للشركات
+  websiteUrl?: string; // مطلوب للمواقع الإلكترونية
   file?: File; // ملف واحد (للريلز، اللوجو، الموقع)
   files?: File[]; // ملفات متعددة (للسوشال ميديا)
 }
@@ -124,15 +102,22 @@ export const worksAPI = {
   async getAll(filters?: WorksFilters): Promise<Work[]> {
     const params = new URLSearchParams();
 
-    if (filters?.status) params.append("status", filters.status);
     if (filters?.type) params.append("type", filters.type);
-    if (filters?.clientId) params.append("clientId", filters.clientId);
-    if (filters?.clientType) params.append("clientType", filters.clientType);
+    if (filters?.category) params.append("category", filters.category);
+    if (filters?.companyId) params.append("companyId", filters.companyId);
 
     const queryString = params.toString();
     const endpoint = queryString ? `/api/portfolio?${queryString}` : "/api/portfolio";
 
-    return fetchAPI(endpoint);
+    const response = await fetchAPI(endpoint);
+
+    // إذا الباك راجع object فيه portfolioItems
+    if (response && response.portfolioItems) {
+      return response.portfolioItems;
+    }
+
+    // إذا راجع array مباشرة
+    return Array.isArray(response) ? response : [];
   },
 
   async getBySlug(slug: string): Promise<Work> {
@@ -140,29 +125,32 @@ export const worksAPI = {
   },
 
   async getById(id: string): Promise<Work> {
-    return fetchAPI(`/api/portfolio/id/${id}`);
+    const response = await fetchAPI(`/api/portfolio/${id}`);
+
+    // إذا الباك راجع object فيه portfolioItem
+    if (response && response.portfolioItem) {
+      return response.portfolioItem;
+    }
+
+    // إذا راجع object مباشرة
+    return response;
   },
 
-  async create(data: CreateWorkData): Promise<Work> {
+  async getByType(type: WorkType): Promise<Work[]> {
+    return fetchAPI(`/api/portfolio/type/${type}`);
+  },
+
+  async create(data: CreateWorkData): Promise<{ portfolioItem: Work }> {
     const formData = new FormData();
 
-    formData.append("clientId", data.clientId);
-    formData.append("type", data.type);
     formData.append("title", data.title);
+    formData.append("type", data.type);
+    formData.append("category", data.category);
 
-    if (data.status) formData.append("status", data.status);
-    if (data.shortDesc) formData.append("shortDesc", data.shortDesc);
-    if (data.heroSubtitle) formData.append("heroSubtitle", data.heroSubtitle);
-    if (data.publishDate) formData.append("publishDate", data.publishDate);
-    if (data.visitUrl) formData.append("visitUrl", data.visitUrl);
-    if (data.isFeatured !== undefined) formData.append("isFeatured", String(data.isFeatured));
-    if (data.seoTitle) formData.append("seoTitle", data.seoTitle);
-    if (data.seoDescription) formData.append("seoDescription", data.seoDescription);
-    if (data.seoKeywords) formData.append("seoKeywords", data.seoKeywords);
-
-    if (data.tagIds && data.tagIds.length > 0) {
-      formData.append("tagIds", JSON.stringify(data.tagIds));
-    }
+    if (data.description) formData.append("description", data.description);
+    if (data.clientName) formData.append("clientName", data.clientName);
+    if (data.companyId) formData.append("companyId", data.companyId);
+    if (data.websiteUrl) formData.append("websiteUrl", data.websiteUrl);
 
     // رفع ملف واحد (للريلز، اللوجو، الموقع)
     if (data.file) {
@@ -182,10 +170,32 @@ export const worksAPI = {
     });
   },
 
-  async update(id: string, data: Partial<CreateWorkData>): Promise<Work> {
+  async update(id: string, data: Partial<CreateWorkData>): Promise<{ portfolioItem: Work }> {
+    const formData = new FormData();
+
+    if (data.title) formData.append("title", data.title);
+    if (data.description !== undefined) formData.append("description", data.description);
+    if (data.type) formData.append("type", data.type);
+    if (data.category) formData.append("category", data.category);
+    if (data.clientName !== undefined) formData.append("clientName", data.clientName);
+    if (data.companyId !== undefined) formData.append("companyId", data.companyId);
+    if (data.websiteUrl !== undefined) formData.append("websiteUrl", data.websiteUrl);
+
+    // رفع ملف جديد
+    if (data.file) {
+      formData.append("media", data.file);
+    }
+
+    // رفع ملفات جديدة
+    if (data.files && data.files.length > 0) {
+      data.files.forEach((file) => {
+        formData.append("media", file);
+      });
+    }
+
     return fetchAPI(`/api/portfolio/${id}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: formData,
     });
   },
 

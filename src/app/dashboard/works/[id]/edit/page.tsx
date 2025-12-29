@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import WorkForm from "@/components/works/WorkForm";
-import SectionsManager from "@/components/works/SectionsManager";
-import MediaManager from "@/components/works/MediaManager";
 import { worksAPI, Work } from "@/lib/services/worksAPI";
-
-type TabType = "basic" | "sections" | "media";
 
 function EditWorkContent() {
   const params = useParams();
@@ -17,7 +13,6 @@ function EditWorkContent() {
   const [work, setWork] = useState<Work | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<TabType>("basic");
 
   useEffect(() => {
     loadWork();
@@ -64,58 +59,9 @@ function EditWorkContent() {
           <p className="text-foreground/60">تعديل بيانات العمل: {work.title}</p>
         </div>
 
-        {/* Tabs */}
-        <div className="mb-6 flex gap-2 border-b-2 border-border">
-          <button
-            onClick={() => setActiveTab("basic")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "basic"
-                ? "text-primary border-b-2 border-primary -mb-[2px]"
-                : "text-foreground/60 hover:text-foreground"
-            }`}
-          >
-            المعلومات الأساسية
-          </button>
-          <button
-            onClick={() => setActiveTab("sections")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "sections"
-                ? "text-primary border-b-2 border-primary -mb-[2px]"
-                : "text-foreground/60 hover:text-foreground"
-            }`}
-          >
-            أقسام العمل
-          </button>
-          <button
-            onClick={() => setActiveTab("media")}
-            className={`px-6 py-3 font-medium transition-all ${
-              activeTab === "media"
-                ? "text-primary border-b-2 border-primary -mb-[2px]"
-                : "text-foreground/60 hover:text-foreground"
-            }`}
-          >
-            الصور والفيديوهات
-          </button>
+        <div className="bg-white rounded-lg border-2 border-border p-6">
+          <WorkForm work={work} mode="edit" />
         </div>
-
-        {/* Tab Content */}
-        {activeTab === "basic" && (
-          <div className="bg-white rounded-lg border-2 border-border p-6">
-            <WorkForm work={work} mode="edit" />
-          </div>
-        )}
-
-        {activeTab === "sections" && (
-          <div className="bg-white rounded-lg border-2 border-border p-6">
-            <SectionsManager workId={id} />
-          </div>
-        )}
-
-        {activeTab === "media" && (
-          <div className="bg-white rounded-lg border-2 border-border p-6">
-            <MediaManager workId={id} />
-          </div>
-        )}
       </div>
     </div>
   );

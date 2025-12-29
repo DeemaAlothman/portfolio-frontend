@@ -5,6 +5,17 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { portfolioAPI, WorkType, Client as APIClient, Work as APIWork } from "@/lib/services/portfolioAPI";
 
+// Helper function to get full image URL
+const getImageUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  // If URL already starts with http, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // Otherwise, prepend API URL
+  return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+};
+
 interface ClientWithWorks extends APIClient {
   works: APIWork[];
 }
@@ -54,17 +65,20 @@ export default function ClientDetailPage() {
     return emojis[type as keyof typeof emojis] || "📁";
   };
 
+  // Ensure works is always an array
+  const clientWorks = Array.isArray(client?.works) ? client.works : [];
+
   // Filter works based on selected type
-  const filteredWorks = client?.works.filter((work: APIWork) =>
+  const filteredWorks = clientWorks.filter((work: APIWork) =>
     workTypeFilter === "ALL" || work.type === workTypeFilter
-  ) || [];
+  );
 
   // Count works by type
   const workCounts = {
-    LOGO: client?.works.filter((w: APIWork) => w.type === "LOGO").length || 0,
-    WEBSITE: client?.works.filter((w: APIWork) => w.type === "WEBSITE").length || 0,
-    SOCIAL_MEDIA: client?.works.filter((w: APIWork) => w.type === "SOCIAL_MEDIA").length || 0,
-    REEL: client?.works.filter((w: APIWork) => w.type === "REEL").length || 0,
+    LOGO: clientWorks.filter((w: APIWork) => w.type === "LOGO").length,
+    WEBSITE: clientWorks.filter((w: APIWork) => w.type === "WEBSITE").length,
+    SOCIAL_MEDIA: clientWorks.filter((w: APIWork) => w.type === "SOCIAL_MEDIA").length,
+    REEL: clientWorks.filter((w: APIWork) => w.type === "REEL").length,
   };
 
   if (loading) {
@@ -107,7 +121,7 @@ export default function ClientDetailPage() {
             {client.logoUrl && (
               <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-3xl shadow-hover p-6 flex items-center justify-center flex-shrink-0">
                 <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${client.logoUrl}`}
+                  src={getImageUrl(client.logoUrl)}
                   alt={client.name}
                   className="max-w-full max-h-full object-contain"
                 />
@@ -229,41 +243,21 @@ export default function ClientDetailPage() {
                     <div className={`relative bg-gradient-to-br from-muted/30 to-muted/50 overflow-hidden flex items-center justify-center ${
                       work.type === "REEL" ? "aspect-[9/16]" : "h-64"
                     }`}>
-                      {work.type === "REEL" && work.media && work.media.length > 0 ? (
-                        // For REELs, show actual video player from media
-                        (() => {
-                          const videoMedia = work.media.find(m => m.fileType === "VIDEO");
-                          return videoMedia ? (
-                            <video
-                              src={`${process.env.NEXT_PUBLIC_API_URL}${videoMedia.fileUrl}`}
-                              poster={
-                                videoMedia.thumbnailUrl
-                                  ? `${process.env.NEXT_PUBLIC_API_URL}${videoMedia.thumbnailUrl}`
-                                  : work.thumbnailUrl
-                                  ? `${process.env.NEXT_PUBLIC_API_URL}${work.thumbnailUrl}`
-                                  : undefined
-                              }
-                              controls
-                              preload="metadata"
-                              playsInline
-                              className="w-full h-full object-cover"
-                            >
-                              <source src={`${process.env.NEXT_PUBLIC_API_URL}${videoMedia.fileUrl}`} type="video/mp4" />
-                              متصفحك لا يدعم تشغيل الفيديو
-                            </video>
-                          ) : work.thumbnailUrl ? (
-                            <img
-                              src={`${process.env.NEXT_PUBLIC_API_URL}${work.thumbnailUrl}`}
-                              alt={work.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-6xl">🎬</span>
-                          );
-                        })()
+                      {work.type === "REEL" && work.thumbnailUrl && (work.mediaType === "VIDEO" || work.type === "REEL") ? (
+                        // For REELs, show video player
+                        <video
+                          src={getImageUrl(work.thumbnailUrl)}
+                          controls
+                          preload="metadata"
+                          playsInline
+                          className="w-full h-full object-cover"
+                        >
+                          <source src={getImageUrl(work.thumbnailUrl)} type="video/mp4" />
+                          متصفحك لا يدعم تشغيل الفيديو
+                        </video>
                       ) : work.thumbnailUrl ? (
                         <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}${work.thumbnailUrl}`}
+                          src={getImageUrl(work.thumbnailUrl)}
                           alt={work.title}
                           className="w-full h-full group-hover:scale-110 transition-transform duration-300 object-cover"
                         />
@@ -280,23 +274,37 @@ export default function ClientDetailPage() {
                     </div>
 
                     {/* Work Info */}
-                    <div className={`flex-grow ${work.type === "REEL" ? "p-3" : "p-6"}`}>
-                      <h3 className={`font-bold text-foreground mb-1 transition-colors ${
-                        work.type === "REEL" ? "text-base line-clamp-2" : "text-2xl group-hover:text-primary"
-                      }`}>
+                    <div className="flex-grow p-4">
+                      <h3 className="font-bold text-foreground text-lg mb-2 line-clamp-2">
                         {work.title}
                       </h3>
 
-                      {/* Description for REELs */}
-                      {work.type === "REEL" && work.description && (
-                        <p className="text-foreground/50 text-xs line-clamp-2 mb-2">
+                      {/* Description */}
+                      {work.description && (
+                        <p className="text-foreground/60 text-sm line-clamp-3 mb-3">
                           {work.description}
                         </p>
                       )}
 
-                      {/* Publish Date for REELs */}
-                      {work.type === "REEL" && work.publishDate && (
-                        <p className="text-foreground/40 text-xs mb-1">
+                      {/* Website URL for WEBSITE type */}
+                      {work.type === "WEBSITE" && work.websiteUrl && (
+                        <a
+                          href={work.websiteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-semibold mb-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          🌐 زيارة الموقع
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      )}
+
+                      {/* Publish Date */}
+                      {work.publishDate && (
+                        <p className="text-foreground/50 text-xs mb-1">
                           📅 {new Date(work.publishDate).toLocaleDateString('ar-SA', {
                             year: 'numeric',
                             month: 'long',
@@ -305,50 +313,21 @@ export default function ClientDetailPage() {
                         </p>
                       )}
 
-                      {/* View Count for REELs */}
-                      {work.type === "REEL" && work.viewCount !== undefined && (
-                        <p className="text-foreground/40 text-xs">
+                      {/* View Count */}
+                      {work.viewCount !== undefined && work.viewCount !== null && work.viewCount > 0 && (
+                        <p className="text-foreground/50 text-xs">
                           👁️ {work.viewCount.toLocaleString('ar-SA')} مشاهدة
                         </p>
-                      )}
-
-                      {work.type !== "REEL" && work.description && (
-                        <p className="text-foreground/60 line-clamp-2 mb-4">
-                          {work.description}
-                        </p>
-                      )}
-
-                      {work.type !== "REEL" && (
-                        <div className="flex items-center text-primary font-semibold group-hover:gap-3 transition-all mt-4">
-                          <span>عرض التفاصيل</span>
-                          <svg
-                            className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 19l-7-7 7-7"
-                            />
-                          </svg>
-                        </div>
                       )}
                     </div>
                   </>
                 );
 
-                // For REELs, use div. For non-REELs, use Link
-                return work.type === "REEL" ? (
+                // All works show details in the card itself (no link needed)
+                return (
                   <div key={work.id} className={cardClassName}>
                     {cardContent}
                   </div>
-                ) : (
-                  <Link key={work.id} href={`/portfolio/${work.slug}`} className={cardClassName}>
-                    {cardContent}
-                  </Link>
                 );
               })}
             </div>

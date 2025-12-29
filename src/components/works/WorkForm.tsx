@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Input from "@/components/auth/Input";
 import Button from "@/components/auth/Button";
-import { worksAPI, CreateWorkData, Work, WorkType, WorkStatus } from "@/lib/services/worksAPI";
+import { worksAPI, CreateWorkData, Work, WorkType, CategoryType } from "@/lib/services/worksAPI";
 import { clientsAPI, Client } from "@/lib/services/clientsAPI";
 
 interface WorkFormProps {
@@ -18,41 +18,38 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [files, setFiles] = useState<File[]>([]); // للصور المتعددة (سوشال ميديا)
-  const [previewUrl, setPreviewUrl] = useState<string>(
-    work?.media?.[0]?.fileUrl ? `${process.env.NEXT_PUBLIC_API_URL}${work.media[0].fileUrl}` : ""
+
+  // الباك إند يرجع URLs جاهزة
+  const [previewUrl, setPreviewUrl] = useState<string>(work?.mediaUrl || "");
+  const [previewUrls, setPreviewUrls] = useState<string[]>(
+    work?.mediaUrls || [] // معاينة الصور المتعددة
   );
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]); // معاينة الصور المتعددة
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loadingClients, setLoadingClients] = useState(true);
+  const [companies, setCompanies] = useState<Client[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
 
   useEffect(() => {
-    loadClients();
+    loadCompanies();
   }, []);
 
-  const loadClients = async () => {
+  const loadCompanies = async () => {
     try {
       const data = await clientsAPI.getAll();
-      setClients(data);
+      setCompanies(data);
     } catch (err) {
-      console.error("Failed to load clients:", err);
+      console.error("Failed to load companies:", err);
     } finally {
-      setLoadingClients(false);
+      setLoadingCompanies(false);
     }
   };
 
   const [formData, setFormData] = useState({
-    clientId: work?.clientId || "",
-    type: work?.type || ("LOGO" as WorkType),
-    status: work?.status || ("PUBLISHED" as WorkStatus),
     title: work?.title || "",
-    shortDesc: work?.shortDesc || "",
-    heroSubtitle: work?.heroSubtitle || "",
-    publishDate: work?.publishDate ? new Date(work.publishDate).toISOString().split("T")[0] : "",
-    visitUrl: work?.visitUrl || "",
-    isFeatured: work?.isFeatured || false,
-    seoTitle: work?.seoTitle || "",
-    seoDescription: work?.seoDescription || "",
-    seoKeywords: work?.seoKeywords || "",
+    description: work?.description || "",
+    type: work?.type || ("LOGO" as WorkType),
+    category: work?.category || ("INDIVIDUAL" as CategoryType),
+    clientName: work?.clientName || "",
+    companyId: work?.companyId || "",
+    websiteUrl: work?.websiteUrl || "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -93,8 +90,15 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.clientId) newErrors.clientId = "معرف العميل مطلوب";
     if (!formData.title) newErrors.title = "العنوان مطلوب";
+
+    // التحقق من نوع العميل
+    if (formData.category === "INDIVIDUAL" && !formData.clientName) {
+      newErrors.clientName = "اسم العميل مطلوب للأفراد";
+    }
+    if (formData.category === "CORPORATE" && !formData.companyId) {
+      newErrors.companyId = "يجب اختيار الشركة";
+    }
 
     // للريلز: الفيديو إلزامي عند الإنشاء
     if (formData.type === "REEL" && mode === "create" && !file) {
@@ -103,8 +107,8 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     }
 
     // للمواقع: رابط الزيارة إلزامي
-    if (formData.type === "WEBSITE" && !formData.visitUrl) {
-      newErrors.visitUrl = "رابط الموقع مطلوب";
+    if (formData.type === "WEBSITE" && !formData.websiteUrl) {
+      newErrors.websiteUrl = "رابط الموقع مطلوب";
       setError("يجب إضافة رابط الموقع الإلكتروني");
     }
 
@@ -135,7 +139,6 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     try {
       const data: CreateWorkData = {
         ...formData,
-        isFeatured: formData.isFeatured,
         // للسوشال ميديا: صور متعددة
         files: formData.type === "SOCIAL_MEDIA" ? files : undefined,
         // للريلز، اللوجو، الموقع: ملف واحد
@@ -143,9 +146,11 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       };
 
       if (mode === "create") {
-        await worksAPI.create(data);
+        const response = await worksAPI.create(data);
+        console.log("Work created:", response.portfolioItem);
       } else if (work) {
-        await worksAPI.update(work.id, data);
+        const response = await worksAPI.update(work.id, data);
+        console.log("Work updated:", response.portfolioItem);
       }
 
       router.push("/dashboard/works");
@@ -165,43 +170,72 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Client Selector */}
+        {/* Category */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            العميل *
+            فئة العميل *
           </label>
-          {loadingClients ? (
-            <div className="w-full px-4 py-3 rounded-lg bg-input-bg border-2 border-border text-foreground/60">
-              جاري تحميل العملاء...
-            </div>
-          ) : (
-            <select
-              value={formData.clientId}
-              onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-              className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-            >
-              <option value="">اختر العميل</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name} ({client.type === "COMPANY" ? "شركة" : "فرد"})
-                </option>
-              ))}
-            </select>
-          )}
-          {errors.clientId && (
-            <p className="mt-2 text-sm text-error">{errors.clientId}</p>
-          )}
-          <p className="mt-1 text-sm text-foreground/60">
-            ليس لديك عميل؟{" "}
-            <a
-              href="/dashboard/clients/new"
-              target="_blank"
-              className="text-primary hover:underline"
-            >
-              أضف عميل جديد
-            </a>
-          </p>
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value as CategoryType })}
+            className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+          >
+            <option value="INDIVIDUAL">عميل فردي</option>
+            <option value="CORPORATE">شركة</option>
+          </select>
         </div>
+
+        {/* Client Name - للأفراد */}
+        {formData.category === "INDIVIDUAL" && (
+          <Input
+            label="اسم العميل *"
+            type="text"
+            placeholder="أحمد محمد"
+            value={formData.clientName}
+            onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+            error={errors.clientName}
+          />
+        )}
+
+        {/* Company Selector - للشركات */}
+        {formData.category === "CORPORATE" && (
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              الشركة *
+            </label>
+            {loadingCompanies ? (
+              <div className="w-full px-4 py-3 rounded-lg bg-input-bg border-2 border-border text-foreground/60">
+                جاري تحميل الشركات...
+              </div>
+            ) : (
+              <select
+                value={formData.companyId}
+                onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
+                className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              >
+                <option value="">اختر الشركة</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {errors.companyId && (
+              <p className="mt-2 text-sm text-error">{errors.companyId}</p>
+            )}
+            <p className="mt-1 text-sm text-foreground/60">
+              ليس لديك شركة؟{" "}
+              <a
+                href="/dashboard/clients/new"
+                target="_blank"
+                className="text-primary hover:underline"
+              >
+                أضف شركة جديدة
+              </a>
+            </p>
+          </div>
+        )}
 
         {/* Type */}
         <div>
@@ -220,22 +254,6 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           </select>
         </div>
 
-        {/* Status */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            الحالة *
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as WorkStatus })}
-            className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-          >
-            <option value="PUBLISHED">منشور</option>
-            <option value="DRAFT">مسودة</option>
-            <option value="ARCHIVED">مؤرشف</option>
-          </select>
-        </div>
-
         {/* Title */}
         <Input
           label="العنوان *"
@@ -246,230 +264,128 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           error={errors.title}
         />
 
-        {/* Short Description */}
-        <Input
-          label="وصف قصير"
-          type="text"
-          placeholder="وصف مختصر للعمل"
-          value={formData.shortDesc}
-          onChange={(e) => setFormData({ ...formData, shortDesc: e.target.value })}
-        />
-
-        {/* Hero Subtitle */}
-        <Input
-          label="العنوان الفرعي"
-          type="text"
-          placeholder="عنوان فرعي يظهر في الصفحة"
-          value={formData.heroSubtitle}
-          onChange={(e) => setFormData({ ...formData, heroSubtitle: e.target.value })}
-        />
-
-        {/* Publish Date */}
-        <Input
-          label="تاريخ النشر"
-          type="date"
-          value={formData.publishDate}
-          onChange={(e) => setFormData({ ...formData, publishDate: e.target.value })}
-        />
-
-        {/* Visit URL - يظهر فقط للمواقع الإلكترونية */}
+        {/* Website URL - يظهر فقط للمواقع الإلكترونية */}
         {formData.type === "WEBSITE" && (
           <Input
-            label="رابط الزيارة *"
+            label="رابط الموقع *"
             type="url"
             placeholder="https://example.com"
-            value={formData.visitUrl}
-            onChange={(e) => setFormData({ ...formData, visitUrl: e.target.value })}
+            value={formData.websiteUrl}
+            onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+            error={errors.websiteUrl}
           />
         )}
       </div>
 
-      {/* Featured Checkbox */}
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="isFeatured"
-          checked={formData.isFeatured}
-          onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-          className="w-5 h-5 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary/20"
-        />
-        <label htmlFor="isFeatured" className="text-sm font-medium text-foreground">
-          عمل مميز (يظهر في الصفحة الرئيسية)
+      {/* Description */}
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          الوصف
         </label>
+        <textarea
+          placeholder="وصف تفصيلي للعمل..."
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-32"
+        />
       </div>
 
-      {/* SEO Section */}
-      <div className="pt-6 border-t-2 border-border">
-        <h3 className="text-lg font-semibold text-primary mb-4">إعدادات SEO</h3>
-        <div className="space-y-4">
-          <Input
-            label="عنوان SEO"
-            type="text"
-            placeholder="عنوان محسّن لمحركات البحث"
-            value={formData.seoTitle}
-            onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              وصف SEO
-            </label>
-            <textarea
-              placeholder="وصف محسّن لمحركات البحث"
-              value={formData.seoDescription}
-              onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-            />
-          </div>
-
-          <Input
-            label="كلمات مفتاحية SEO"
-            type="text"
-            placeholder="كلمة1, كلمة2, كلمة3"
-            value={formData.seoKeywords}
-            onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/* File Upload */}
+      {/* File Upload Section */}
       <div className="pt-6 border-t-2 border-border">
         <h3 className="text-lg font-semibold text-primary mb-4">
-          {formData.type === "REEL" && "فيديو الريلز"}
-          {formData.type === "LOGO" && "صورة الشعار"}
-          {formData.type === "WEBSITE" && "صورة الموقع (Screenshot)"}
-          {formData.type === "SOCIAL_MEDIA" && "صور السوشال ميديا"}
+          {formData.type === "REEL" && "رفع الفيديو"}
+          {formData.type === "LOGO" && "رفع الشعار"}
+          {formData.type === "WEBSITE" && "رفع صورة الموقع"}
+          {formData.type === "SOCIAL_MEDIA" && "رفع الصور (حتى 10 صور)"}
         </h3>
 
-        {/* رفع ملف واحد (للريلز، اللوجو، الموقع) */}
+        {/* Single File Upload (LOGO, REEL, WEBSITE) */}
         {formData.type !== "SOCIAL_MEDIA" && (
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              {formData.type === "REEL" && "رفع فيديو *"}
-              {formData.type === "LOGO" && "رفع صورة الشعار *"}
-              {formData.type === "WEBSITE" && "رفع صورة *"}
-            </label>
             <input
               type="file"
               accept={formData.type === "REEL" ? "video/*" : "image/*"}
               onChange={handleFileChange}
-              className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+              className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
             />
-            {formData.type === "REEL" && (
-              <p className="mt-2 text-sm text-foreground/60">
-                📹 قم برفع الفيديو مباشرة (حد أقصى: 100MB، مدة: 10 دقائق للرفع)
-              </p>
+            {errors.file && (
+              <p className="mt-2 text-sm text-error">{errors.file}</p>
             )}
-            {formData.type === "LOGO" && (
-              <p className="mt-2 text-sm text-foreground/60">
-                🎨 موصى به: PNG مع خلفية شفافة، حجم 500x500 بكسل
-              </p>
+            {previewUrl && formData.type !== "REEL" && (
+              <div className="mt-4">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full max-w-md h-auto rounded-lg border-2 border-border"
+                />
+              </div>
             )}
-            {formData.type === "WEBSITE" && (
-              <p className="mt-2 text-sm text-foreground/60">
-                🖼️ ارفع لقطة شاشة للموقع (Screenshot)
-              </p>
+            {previewUrl && formData.type === "REEL" && (
+              <div className="mt-4">
+                <video
+                  src={previewUrl}
+                  controls
+                  className="w-full max-w-md h-auto rounded-lg border-2 border-border"
+                />
+              </div>
             )}
           </div>
         )}
 
-        {/* رفع ملفات متعددة (للسوشال ميديا فقط) */}
+        {/* Multiple Files Upload (SOCIAL_MEDIA) */}
         {formData.type === "SOCIAL_MEDIA" && (
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              رفع صور متعددة * (حتى 10 صور)
-            </label>
             <input
               type="file"
               accept="image/*"
               multiple
               onChange={handleMultipleFilesChange}
-              className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+              className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
             />
-            <p className="mt-2 text-sm text-foreground/60">
-              📸 يمكنك رفع حتى 10 صور (JPG, PNG, GIF)
-            </p>
-            {files.length > 0 && (
-              <p className="mt-1 text-sm text-primary font-medium">
-                تم اختيار {files.length} صورة
-              </p>
+            {errors.files && (
+              <p className="mt-2 text-sm text-error">{errors.files}</p>
             )}
-          </div>
-        )}
-
-        {/* معاينة ملف واحد */}
-        {previewUrl && formData.type !== "SOCIAL_MEDIA" && (
-          <div className="mt-4">
-            {formData.type === "REEL" || file?.type.startsWith("video/") ? (
-              <video
-                src={previewUrl}
-                controls
-                className="max-w-sm h-auto rounded-lg border-2 border-border"
-              >
-                المتصفح لا يدعم تشغيل الفيديو
-              </video>
-            ) : (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-w-sm h-auto rounded-lg border-2 border-border"
-              />
-            )}
-          </div>
-        )}
-
-        {/* معاينة الصور المتعددة */}
-        {previewUrls.length > 0 && formData.type === "SOCIAL_MEDIA" && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium text-foreground mb-3">
-              معاينة الصور ({previewUrls.length})
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {previewUrls.map((url, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border-2 border-border"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="absolute top-2 right-2 bg-error text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
-                  <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    {index + 1}
+            {previewUrls.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg border-2 border-border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="absolute top-2 right-2 bg-error text-white p-2 rounded-full hover:bg-error/90 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {formData.type === "REEL" && !file && mode === "create" && (
-          <div className="mt-4 p-4 bg-primary/10 border-2 border-primary/20 rounded-lg">
-            <p className="text-sm text-primary font-medium">
-              💡 نصيحة: للفيديوهات الكبيرة (أكثر من 50MB)، استخدم YouTube
-            </p>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-4 pt-6">
-        <Button type="submit" loading={loading} variant="primary">
-          {mode === "create" ? "إنشاء العمل" : "حفظ التغييرات"}
-        </Button>
-        <button
+      {/* Submit Button */}
+      <div className="flex justify-end gap-4 pt-6 border-t-2 border-border">
+        <Button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-3 rounded-full border-2 border-border text-foreground hover:bg-accent transition-all"
+          variant="secondary"
         >
           إلغاء
-        </button>
+        </Button>
+        <Button
+          type="submit"
+          loading={loading}
+        >
+          {mode === "create" ? "إضافة العمل" : "حفظ التعديلات"}
+        </Button>
       </div>
     </form>
   );

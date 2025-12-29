@@ -47,6 +47,8 @@ export default function LoginPage() {
 
     try {
       await login(formData);
+      console.log("LOGIN SUCCESS");
+
       router.push("/dashboard");
     } catch (error: any) {
       setGeneralError(error.message || "فشل تسجيل الدخول");
@@ -99,7 +101,7 @@ export default function LoginPage() {
           </Button>
 
           <div className="text-center">
-            <p className="text-zinc-400 text-sm">
+            {/* <p className="text-zinc-400 text-sm">
               ليس لديك حساب؟{" "}
               <Link
                 href="/auth/register"
@@ -107,7 +109,7 @@ export default function LoginPage() {
               >
                 إنشاء حساب جديد
               </Link>
-            </p>
+            </p> */}
           </div>
         </form>
       </div>

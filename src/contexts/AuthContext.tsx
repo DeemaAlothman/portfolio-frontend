@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { authAPI, User, LoginCredentials, RegisterData } from "@/lib/api";
 
 interface AuthContextType {
@@ -24,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const userData = await authAPI.getMe();
-          setUser(userData);
+          setUser(userData.admin);
         } catch (error) {
           localStorage.removeItem("token");
         }
@@ -37,12 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: LoginCredentials) => {
     const response = await authAPI.login(credentials);
-    setUser(response.user);
+    setUser(response.admin);
   };
 
   const register = async (data: RegisterData) => {
     const response = await authAPI.register(data);
-    setUser(response.user);
+    setUser(response.admin);
   };
 
   const logout = () => {

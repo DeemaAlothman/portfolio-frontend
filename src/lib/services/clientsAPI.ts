@@ -5,15 +5,10 @@ export type ClientType = "COMPANY" | "INDIVIDUAL";
 export interface Client {
   id: string;
   name: string;
-  type: ClientType;
-  slug: string;
   description?: string;
-  websiteUrl?: string;
-  logoUrl?: string;
-  industry?: string;
-  location?: string;
-  sortOrder: number;
-  isActive: boolean;
+  website?: string;
+  logo?: string; // الباك إند يرجع logo (مش logoUrl) - URL كامل
+  logoUrl?: string; // للتوافق مع الكود القديم
   createdAt: string;
   updatedAt: string;
 }
@@ -24,11 +19,8 @@ export interface ClientsFilters {
 
 export interface CreateClientData {
   name: string;
-  type: ClientType;
   description?: string;
-  websiteUrl?: string;
-  industry?: string;
-  location?: string;
+  website?: string;
   logo?: File;
 }
 
@@ -81,7 +73,15 @@ export const clientsAPI = {
     const queryString = params.toString();
     const endpoint = queryString ? `/api/companies?${queryString}` : "/api/companies";
 
-    return fetchAPI(endpoint);
+    const response = await fetchAPI(endpoint);
+
+    // إذا الباك راجع object فيه companies
+    if (response && response.companies) {
+      return response.companies;
+    }
+
+    // إذا راجع array مباشرة
+    return Array.isArray(response) ? response : [];
   },
 
   async getBySlug(slug: string): Promise<Client> {
@@ -89,19 +89,25 @@ export const clientsAPI = {
   },
 
   async getById(id: string): Promise<Client> {
-    return fetchAPI(`/api/companies/id/${id}`);
+    // الباك إند يستخدم /api/companies/:id مش /api/companies/id/:id
+    const response = await fetchAPI(`/api/companies/${id}`);
+
+    // إذا الباك راجع object فيه company
+    if (response && response.company) {
+      return response.company;
+    }
+
+    // إذا راجع object مباشرة
+    return response;
   },
 
-  async create(data: CreateClientData): Promise<Client> {
+  async create(data: CreateClientData): Promise<{ company: Client }> {
     const formData = new FormData();
 
     formData.append("name", data.name);
-    formData.append("type", data.type);
 
     if (data.description) formData.append("description", data.description);
-    if (data.websiteUrl) formData.append("websiteUrl", data.websiteUrl);
-    if (data.industry) formData.append("industry", data.industry);
-    if (data.location) formData.append("location", data.location);
+    if (data.website) formData.append("website", data.website);
 
     if (data.logo) {
       formData.append("logo", data.logo);
@@ -113,15 +119,12 @@ export const clientsAPI = {
     });
   },
 
-  async update(id: string, data: Partial<CreateClientData>): Promise<Client> {
+  async update(id: string, data: Partial<CreateClientData>): Promise<{ company: Client }> {
     const formData = new FormData();
 
     if (data.name) formData.append("name", data.name);
-    if (data.type) formData.append("type", data.type);
     if (data.description !== undefined) formData.append("description", data.description);
-    if (data.websiteUrl !== undefined) formData.append("websiteUrl", data.websiteUrl);
-    if (data.industry !== undefined) formData.append("industry", data.industry);
-    if (data.location !== undefined) formData.append("location", data.location);
+    if (data.website !== undefined) formData.append("website", data.website);
 
     if (data.logo) {
       formData.append("logo", data.logo);

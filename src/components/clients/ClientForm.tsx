@@ -4,7 +4,7 @@ import { useState, FormEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Input from "@/components/auth/Input";
 import Button from "@/components/auth/Button";
-import { clientsAPI, CreateClientData, Client, ClientType } from "@/lib/services/clientsAPI";
+import { clientsAPI, CreateClientData, Client } from "@/lib/services/clientsAPI";
 
 interface ClientFormProps {
   client?: Client;
@@ -17,16 +17,13 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
   const [error, setError] = useState("");
   const [logo, setLogo] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(
-    client?.logoUrl ? `${process.env.NEXT_PUBLIC_API_URL}${client.logoUrl}` : ""
+    client?.logo || client?.logoUrl || "" // الباك إند يرجع logo (مش logoUrl)
   );
 
   const [formData, setFormData] = useState({
     name: client?.name || "",
-    type: client?.type || ("COMPANY" as ClientType),
     description: client?.description || "",
-    websiteUrl: client?.websiteUrl || "",
-    industry: client?.industry || "",
-    location: client?.location || "",
+    website: client?.website || "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -42,7 +39,7 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name) newErrors.name = "اسم العميل مطلوب";
+    if (!formData.name) newErrors.name = "اسم الشركة مطلوب";
     if (formData.name.length < 2) newErrors.name = "الاسم يجب أن يكون حرفين على الأقل";
 
     setErrors(newErrors);
@@ -71,7 +68,7 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
 
       router.push("/dashboard/clients");
     } catch (err: any) {
-      setError(err.message || "فشل حفظ العميل");
+      setError(err.message || "فشل حفظ الشركة");
     } finally {
       setLoading(false);
     }
@@ -88,45 +85,12 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Name */}
         <Input
-          label="اسم العميل *"
+          label="اسم الشركة *"
           type="text"
-          placeholder="مثال: شركة XYZ"
+          placeholder="مثال: شركة E-mall"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           error={errors.name}
-        />
-
-        {/* Type */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            نوع العميل *
-          </label>
-          <select
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value as ClientType })}
-            className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-          >
-            <option value="COMPANY">شركة</option>
-            <option value="INDIVIDUAL">فرد</option>
-          </select>
-        </div>
-
-        {/* Industry */}
-        <Input
-          label="مجال العمل"
-          type="text"
-          placeholder="مثال: تكنولوجيا، صحة، تعليم"
-          value={formData.industry}
-          onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-        />
-
-        {/* Location */}
-        <Input
-          label="الموقع"
-          type="text"
-          placeholder="مثال: الرياض، السعودية"
-          value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
         />
 
         {/* Website URL */}
@@ -134,9 +98,8 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
           label="رابط الموقع"
           type="url"
           placeholder="https://example.com"
-          value={formData.websiteUrl}
-          onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-          className="md:col-span-2"
+          value={formData.website}
+          onChange={(e) => setFormData({ ...formData, website: e.target.value })}
         />
       </div>
 
@@ -146,7 +109,7 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
           الوصف
         </label>
         <textarea
-          placeholder="وصف مختصر عن العميل"
+          placeholder="وصف مختصر عن الشركة"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={4}
@@ -156,7 +119,7 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
 
       {/* Logo Upload */}
       <div className="pt-6 border-t-2 border-border">
-        <h3 className="text-lg font-semibold text-primary mb-4">شعار العميل (Logo)</h3>
+        <h3 className="text-lg font-semibold text-primary mb-4">شعار الشركة (Logo)</h3>
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
             رفع شعار
@@ -165,7 +128,7 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+            className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
           />
           <p className="mt-2 text-sm text-foreground/60">
             يفضل استخدام صورة مربعة بخلفية شفافة (PNG)
@@ -189,7 +152,7 @@ export default function ClientForm({ client, mode }: ClientFormProps) {
       {/* Actions */}
       <div className="flex gap-4 pt-6">
         <Button type="submit" loading={loading} variant="primary">
-          {mode === "create" ? "إضافة العميل" : "حفظ التغييرات"}
+          {mode === "create" ? "إضافة الشركة" : "حفظ التغييرات"}
         </Button>
         <button
           type="button"

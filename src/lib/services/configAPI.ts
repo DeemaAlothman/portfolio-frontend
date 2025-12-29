@@ -1,16 +1,12 @@
 // src/lib/services/configAPI.ts
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export interface PortfolioConfig {
-  id: number;
-  // Hero Section
-  heroTitle: string;
-  heroSubtitle?: string | null;
-  heroDescription?: string | null;
-  // About Section
-  aboutTitle?: string | null;
-  aboutDescription?: string | null;
+  id?: string;
+  // Site Info
+  siteName: string;
+  siteDescription?: string | null;
   // Contact Info
   email?: string | null;
   phone?: string | null;
@@ -21,25 +17,18 @@ export interface PortfolioConfig {
   twitterUrl?: string | null;
   linkedinUrl?: string | null;
   youtubeUrl?: string | null;
-  // Theme Colors
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor?: string | null;
-  // SEO
-  siteName: string;
-  siteDescription?: string | null;
-  siteKeywords?: string | null;
-  updatedAt: string;
+  whatsappNumber?: string | null;
+  // Footer
+  footerText?: string | null;
+  // Timestamps
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface UpdateConfigData {
-  // Hero Section
-  heroTitle?: string;
-  heroSubtitle?: string;
-  heroDescription?: string;
-  // About Section
-  aboutTitle?: string;
-  aboutDescription?: string;
+  // Site Info
+  siteName?: string;
+  siteDescription?: string;
   // Contact Info
   email?: string;
   phone?: string;
@@ -50,34 +39,9 @@ export interface UpdateConfigData {
   twitterUrl?: string;
   linkedinUrl?: string;
   youtubeUrl?: string;
-  // Theme Colors
-  primaryColor?: string;
-  secondaryColor?: string;
-  accentColor?: string;
-  // SEO
-  siteName?: string;
-  siteDescription?: string;
-  siteKeywords?: string;
-}
-
-export interface UpdateColorsData {
-  primaryColor?: string;
-  secondaryColor?: string;
-  accentColor?: string;
-}
-
-export interface UpdateContactData {
-  email?: string;
-  phone?: string;
-  address?: string;
-}
-
-export interface UpdateSocialData {
-  facebookUrl?: string;
-  instagramUrl?: string;
-  twitterUrl?: string;
-  linkedinUrl?: string;
-  youtubeUrl?: string;
+  whatsappNumber?: string;
+  // Footer
+  footerText?: string;
 }
 
 class ApiError extends Error {
@@ -112,40 +76,20 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 }
 
 export const configAPI = {
-  // ✅ جلب إعدادات الموقع (Public)
+  // Public: جلب إعدادات الموقع
   async get(): Promise<PortfolioConfig> {
-    return fetchWithAuth(`${API_URL}/api/config`);
+    const response = await fetchWithAuth(`${API_URL}/api/config`);
+    // Backend يرجع { config: {...} }
+    return response.config || response;
   },
 
-  // ✅ تحديث جميع الإعدادات (Admin)
+  // Admin: تحديث إعدادات الموقع
   async update(data: UpdateConfigData): Promise<PortfolioConfig> {
-    return fetchWithAuth(`${API_URL}/api/config`, {
+    const response = await fetchWithAuth(`${API_URL}/api/config`, {
       method: "PUT",
       body: JSON.stringify(data),
     });
-  },
-
-  // ✅ تحديث ألوان الثيم فقط (Admin)
-  async updateColors(data: UpdateColorsData): Promise<PortfolioConfig> {
-    return fetchWithAuth(`${API_URL}/api/config/colors`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
-  },
-
-  // ✅ تحديث معلومات التواصل فقط (Admin)
-  async updateContact(data: UpdateContactData): Promise<PortfolioConfig> {
-    return fetchWithAuth(`${API_URL}/api/config/contact`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
-  },
-
-  // ✅ تحديث روابط التواصل الاجتماعي فقط (Admin)
-  async updateSocial(data: UpdateSocialData): Promise<PortfolioConfig> {
-    return fetchWithAuth(`${API_URL}/api/config/social`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
+    // Backend يرجع { config: {...} }
+    return response.config || response;
   },
 };

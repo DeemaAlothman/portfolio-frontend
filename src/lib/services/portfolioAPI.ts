@@ -23,6 +23,10 @@ export interface Client {
   location?: string | null;
   website?: string | null;
   description?: string | null;
+  works?: Work[]; // أعمال العميل
+  _count?: {
+    works: number;
+  };
 }
 
 export interface Media {
@@ -51,19 +55,24 @@ export interface Work {
   slug: string;
   description?: string | null;
   type: WorkType;
-  status: WorkStatus;
+  status?: WorkStatus;
   thumbnailUrl?: string | null;
+  mediaUrl?: string | null; // Backend uses this
+  mediaType?: "IMAGE" | "VIDEO"; // Backend uses this
   publishDate?: string | null;
-  isFeatured: boolean;
-  viewCount: number;
-  sortOrder: number;
+  isFeatured?: boolean;
+  viewCount?: number;
+  sortOrder?: number;
   client?: Client;
+  company?: Client; // Backend uses this for corporate works
   media?: Media[];
   sections?: WorkSection[];
   tags?: { tag: Tag }[];
   metaTitle?: string | null;
   metaDescription?: string | null;
   metaKeywords?: string | null;
+  websiteUrl?: string | null;
+  category?: "INDIVIDUAL" | "CORPORATE";
 }
 
 export interface PortfolioFilters {
@@ -126,8 +135,11 @@ export const portfolioAPI = {
     const params = new URLSearchParams();
 
     if (filters?.type) params.append("type", filters.type);
-    if (filters?.clientType) params.append("clientType", filters.clientType);
-    if (filters?.clientId) params.append("clientId", filters.clientId);
+    // Backend uses 'category' instead of 'clientType'
+    if (filters?.clientType) {
+      params.append("category", filters.clientType === "COMPANY" ? "CORPORATE" : "INDIVIDUAL");
+    }
+    if (filters?.clientId) params.append("companyId", filters.clientId);
     if (filters?.featured !== undefined)
       params.append("featured", String(filters.featured));
     if (filters?.limit) params.append("limit", String(filters.limit));
@@ -139,13 +151,29 @@ export const portfolioAPI = {
     const url = `${API_URL}/api/portfolio${queryString ? `?${queryString}` : ""}`;
 
     const response = await fetchPublic(url);
+
+    // Backend يرجع { portfolioItems: [...], count: N }
+    let items = response.portfolioItems || response.data || response;
+    const count = response.count || 0;
+
+    // Transform items to match our interface
+    items = Array.isArray(items) ? items.map((item: any) => ({
+      ...item,
+      // Add thumbnailUrl from mediaUrl for compatibility
+      thumbnailUrl: item.mediaUrl || item.thumbnailUrl,
+      // Add client from company for compatibility
+      client: item.company || item.client,
+      // Normalize viewCount
+      viewCount: item.viewCount || 0,
+    })) : [];
+
     return {
-      data: response.data || response,
-      pagination: response.pagination || {
-        total: 0,
-        limit: 50,
-        offset: 0,
-        hasMore: false,
+      data: items,
+      pagination: {
+        total: count,
+        limit: filters?.limit || 50,
+        offset: filters?.offset || 0,
+        hasMore: count > (filters?.offset || 0) + (filters?.limit || 50),
       },
     };
   },
@@ -161,20 +189,60 @@ export const portfolioAPI = {
     return fetchPublic(`${API_URL}/api/portfolio/${slug}`);
   },
 
-  // ✅ جلب جميع العملاء (Public)
+  // ✅ جلب جميع الشركات/العملاء (Public)
   async getClients(type?: ClientType): Promise<Client[]> {
     const params = type ? new URLSearchParams({ type }) : "";
-    return fetchPublic(
-      `${API_URL}/api/portfolio/clients${params ? `?${params}` : ""}`
+    const response = await fetchPublic(
+      `${API_URL}/api/companies${params ? `?${params}` : ""}`
     );
+
+    // Backend يرجع { companies: [...] }
+    let companies = response && response.companies ? response.companies :
+                    Array.isArray(response) ? response : [];
+
+    // تحويل logo إلى logoUrl لأن Backend يستخدم logo
+    companies = companies.map((company: any) => ({
+      ...company,
+      logoUrl: company.logo || company.logoUrl,
+      // إذا في type parameter، نستخدمه، إلا نحط COMPANY بشكل افتراضي
+      type: company.type || type || "COMPANY",
+      _count: {
+        works: company._count?.portfolioItems || company._count?.works || 0
+      }
+    }));
+
+    return companies;
   },
 
-  // ✅ جلب عميل مع أعماله (Public)
+  // ✅ جلب شركة/عميل محدد مع أعماله (Public)
   async getClientBySlug(slug: string, workType?: WorkType): Promise<Client> {
-    const params = workType ? new URLSearchParams({ type: workType }) : "";
-    return fetchPublic(
-      `${API_URL}/api/portfolio/clients/${slug}${params ? `?${params}` : ""}`
-    );
+    // Since Backend doesn't support fetching by slug, we'll:
+    // 1. Fetch all companies
+    // 2. Find the one matching the slug
+    // 3. Fetch its works separately
+
+    const allClients = await this.getClients();
+    const client = allClients.find(c => c.slug === slug);
+
+    if (!client) {
+      throw new ApiError(404, "العميل غير موجود");
+    }
+
+    // Fetch works for this client
+    const worksResponse = await this.getWorks({
+      clientId: client.id,
+      type: workType,
+      limit: 100 // Get all works for this client
+    });
+
+    // Ensure works is always an array
+    const works = Array.isArray(worksResponse.data) ? worksResponse.data : [];
+
+    // Return client with works
+    return {
+      ...client,
+      works: works
+    };
   },
 
   // ✅ جلب إحصائيات البورتفوليو (Public)

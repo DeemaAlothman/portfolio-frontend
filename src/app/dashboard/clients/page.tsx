@@ -1,65 +1,55 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Button from "@/components/auth/Button";
-import { clientsAPI, Client, ClientType } from "@/lib/services/clientsAPI";
+import { clientsAPI, Client } from "@/lib/services/clientsAPI";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import Link from "next/link";
 
 function ClientsContent() {
-  const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState<ClientType | "">("");
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; client: Client | null }>({
+    isOpen: false,
+    client: null,
+  });
 
   useEffect(() => {
     loadClients();
-  }, [filter]);
+  }, []);
 
   const loadClients = async () => {
     try {
       setLoading(true);
       setError("");
-      const data = await clientsAPI.getAll({
-        ...(filter && { type: filter as ClientType }),
-      });
-      setClients(data);
+      const data = await clientsAPI.getAll();
+      // تحقق إذا البيانات array
+      setClients(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      setError(err.message || "فشل تحميل العملاء");
+      setError(err.message || "فشل تحميل الشركات");
+      setClients([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`هل أنت متأكد من حذف العميل "${name}"؟\n\nملاحظة: لا يمكن حذف عميل لديه أعمال.`)) return;
-
-    try {
-      await clientsAPI.delete(id);
-      setClients(clients.filter((client) => client.id !== id));
-    } catch (err: any) {
-      alert(err.message || "فشل حذف العميل");
-    }
+  const handleDeleteClick = (client: Client) => {
+    setDeleteModal({ isOpen: true, client });
   };
 
-  const getTypeBadge = (type: ClientType) => {
-    const styles: Record<ClientType, string> = {
-      COMPANY: "bg-primary/20 text-primary",
-      INDIVIDUAL: "bg-accent text-foreground",
-    };
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.client) return;
 
-    const labels: Record<ClientType, string> = {
-      COMPANY: "شركة",
-      INDIVIDUAL: "فرد",
-    };
-
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[type]}`}>
-        {labels[type]}
-      </span>
-    );
+    try {
+      await clientsAPI.delete(deleteModal.client.id);
+      setClients(clients.filter((client) => client.id !== deleteModal.client!.id));
+      setDeleteModal({ isOpen: false, client: null });
+    } catch (err: any) {
+      setError(err.message || "فشل حذف الشركة");
+      setDeleteModal({ isOpen: false, client: null });
+    }
   };
 
   return (
@@ -68,40 +58,13 @@ function ClientsContent() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">العملاء</h1>
-            <p className="text-foreground/60">إدارة قائمة العملاء والشركات</p>
+            <h1 className="text-4xl font-bold text-primary mb-2">الشركات</h1>
+            <p className="text-foreground/60">إدارة قائمة الشركات</p>
           </div>
           <div className="w-48">
             <Link href="/dashboard/clients/new">
-              <Button variant="primary">+ إضافة عميل جديد</Button>
+              <Button variant="primary">+ إضافة شركة جديدة</Button>
             </Link>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="mb-6 p-4 bg-white rounded-lg border-2 border-border">
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                نوع العميل
-              </label>
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as ClientType | "")}
-                className="w-full px-4 py-2 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none"
-              >
-                <option value="">الكل</option>
-                <option value="COMPANY">شركات</option>
-                <option value="INDIVIDUAL">أفراد</option>
-              </select>
-            </div>
-
-            <button
-              onClick={() => setFilter("")}
-              className="px-6 py-2 rounded-lg border-2 border-border text-foreground hover:bg-accent transition-colors"
-            >
-              إعادة تعيين
-            </button>
           </div>
         </div>
 
@@ -122,10 +85,10 @@ function ClientsContent() {
             {/* Clients List */}
             {clients.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg border-2 border-border">
-                <p className="text-foreground/60 mb-4">لا يوجد عملاء بعد</p>
+                <p className="text-foreground/60 mb-4">لا يوجد شركات بعد</p>
                 <Link href="/dashboard/clients/new">
                   <Button variant="primary" className="max-w-xs mx-auto">
-                    إضافة أول عميل
+                    إضافة أول شركة
                   </Button>
                 </Link>
               </div>
@@ -137,19 +100,22 @@ function ClientsContent() {
                     className="bg-white rounded-lg border-2 border-border hover:shadow-lg transition-all overflow-hidden"
                   >
                     {/* Logo */}
-                    {client.logoUrl ? (
+                    {(client.logo || client.logoUrl) ? (
                       <div className="aspect-square bg-secondary relative p-4">
                         <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}${client.logoUrl}`}
+                          src={client.logo || client.logoUrl}
                           alt={client.name}
                           className="w-full h-full object-contain"
+                          onError={(e) => {
+                            console.error("Logo load error:", client.logo || client.logoUrl);
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.parentElement!.innerHTML = '<div class="aspect-square bg-secondary flex items-center justify-center"><span class="text-6xl">🏢</span></div>';
+                          }}
                         />
                       </div>
                     ) : (
                       <div className="aspect-square bg-secondary flex items-center justify-center">
-                        <span className="text-6xl">
-                          {client.type === "COMPANY" ? "🏢" : "👤"}
-                        </span>
+                        <span className="text-6xl">🏢</span>
                       </div>
                     )}
 
@@ -159,33 +125,22 @@ function ClientsContent() {
                         <h3 className="text-lg font-semibold text-primary line-clamp-1 flex-1">
                           {client.name}
                         </h3>
-                        {getTypeBadge(client.type)}
                       </div>
 
                       <div className="space-y-2 mb-4">
-                        {client.industry && (
-                          <p className="text-sm text-foreground/70">
-                            <span className="font-medium">المجال:</span> {client.industry}
-                          </p>
-                        )}
-                        {client.location && (
-                          <p className="text-sm text-foreground/70">
-                            <span className="font-medium">الموقع:</span> {client.location}
-                          </p>
-                        )}
                         {client.description && (
                           <p className="text-sm text-foreground/60 line-clamp-2">
                             {client.description}
                           </p>
                         )}
-                        {client.websiteUrl && (
+                        {client.website && (
                           <a
-                            href={client.websiteUrl}
+                            href={client.website}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-primary hover:underline block truncate"
                           >
-                            🌐 {client.websiteUrl}
+                            🌐 {client.website}
                           </a>
                         )}
                       </div>
@@ -198,7 +153,7 @@ function ClientsContent() {
                           </button>
                         </Link>
                         <button
-                          onClick={() => handleDelete(client.id, client.name)}
+                          onClick={() => handleDeleteClick(client)}
                           className="px-4 py-2 rounded-lg border-2 border-error text-error hover:bg-error/10 transition-colors text-sm"
                         >
                           حذف
@@ -212,6 +167,18 @@ function ClientsContent() {
           </>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, client: null })}
+        onConfirm={handleDeleteConfirm}
+        title="حذف الشركة"
+        message={`هل أنت متأكد من حذف الشركة "${deleteModal.client?.name}"؟\n\nملاحظة: لا يمكن حذف شركة لديها أعمال.`}
+        confirmText="حذف"
+        cancelText="إلغاء"
+        variant="danger"
+      />
     </div>
   );
 }
