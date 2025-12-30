@@ -25,6 +25,10 @@ COPY . .
 # تعطيل telemetry أثناء البناء
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# ✅ مهم: build-time env for Next
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # بناء التطبيق
 RUN npm run build
 
