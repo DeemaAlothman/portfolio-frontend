@@ -1,7 +1,7 @@
 version: '3.8'
 
 # ملف Docker Compose لتشغيل عدة نسخ على بورتات مختلفة
-# للاستخدام: docker-compose -f docker-compose.multi-port.yml up -d
+# للاستخدام: docker compose -f docker-compose.multi-port.yml up -d
 
 services:
   # Frontend على بورت 3010
@@ -14,7 +14,6 @@ services:
       - "3010:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://217.76.53.136:3000
     env_file:
       - .env.production
     restart: unless-stopped
@@ -31,7 +30,6 @@ services:
       - "3011:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://217.76.53.136:3000
     env_file:
       - .env.production
     restart: unless-stopped
@@ -50,7 +48,6 @@ services:
       - "4000:3000"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://217.76.53.136:3000
     env_file:
       - .env.production
     restart: unless-stopped
