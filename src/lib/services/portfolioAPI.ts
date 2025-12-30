@@ -1,7 +1,6 @@
 // src/lib/services/portfolioAPI.ts
 // Public Portfolio API - No authentication required
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL";
 export type ClientType = "COMPANY" | "INDIVIDUAL";

@@ -1,6 +1,7 @@
 // src/lib/services/mediaAPI.ts
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 
 export type MediaType = "IMAGE" | "VIDEO";
 
