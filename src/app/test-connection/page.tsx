@@ -14,12 +14,9 @@ export default function TestConnectionPage() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-      // Test basic connection
-      const response = await fetch(`${apiUrl}/auth/login`, {
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: "test@test.com",
           password: "test",
@@ -42,6 +39,8 @@ export default function TestConnectionPage() {
     }
   };
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
@@ -49,12 +48,11 @@ export default function TestConnectionPage() {
 
         <div className="mb-6 p-4 rounded-lg border border-white/[0.145] bg-secondary">
           <p className="text-sm text-zinc-400 mb-2">
-            <strong className="text-white">API URL:</strong>{" "}
-            {process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}
+            <strong className="text-white">API URL:</strong> {apiUrl}
           </p>
           <p className="text-sm text-zinc-400">
             <strong className="text-white">Test Endpoint:</strong> POST
-            /auth/login
+            /api/auth/login
           </p>
         </div>
 
@@ -86,11 +84,12 @@ export default function TestConnectionPage() {
             <li>
               جرّب الوصول مباشرة:{" "}
               <a
-                href={`${process.env.NEXT_PUBLIC_API_URL}/auth/login`}
+                href={`${apiUrl}/api/auth/login`}
                 target="_blank"
+                rel="noreferrer"
                 className="text-white underline"
               >
-                {process.env.NEXT_PUBLIC_API_URL}/auth/login
+                {apiUrl}/api/auth/login
               </a>
             </li>
           </ol>
