@@ -2,6 +2,7 @@
 
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import Input from "@/components/auth/Input";
 import Button from "@/components/auth/Button";
 import { worksAPI, CreateWorkData, Work, WorkType, CategoryType } from "@/lib/services/worksAPI";
@@ -18,6 +19,8 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [files, setFiles] = useState<File[]>([]); // للصور المتعددة (سوشال ميديا)
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   // الباك إند يرجع URLs جاهزة
   const [previewUrl, setPreviewUrl] = useState<string>(work?.mediaUrl || "");
@@ -57,8 +60,17 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      // التحقق من الحجم الأقصى (200MB)
+      const maxSize = 200 * 1024 * 1024; // 200MB in bytes
+      if (selectedFile.size > maxSize) {
+        setError(`حجم الملف كبير جداً! الحد الأقصى 200 ميجابايت. حجم الملف المختار: ${(selectedFile.size / 1024 / 1024).toFixed(2)} ميجابايت`);
+        e.target.value = ''; // مسح الاختيار
+        return;
+      }
+
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
+      setError(""); // مسح أي أخطاء سابقة
     }
   };
 
@@ -135,29 +147,101 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     if (!validateForm()) return;
 
     setLoading(true);
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      const data: CreateWorkData = {
-        ...formData,
-        // للسوشال ميديا: صور متعددة
-        files: formData.type === "SOCIAL_MEDIA" ? files : undefined,
-        // للريلز، اللوجو، الموقع: ملف واحد
-        file: formData.type !== "SOCIAL_MEDIA" ? (file || undefined) : undefined,
-      };
+      // بناء FormData للإرسال
+      const uploadData = new FormData();
+      uploadData.append('title', formData.title);
+      uploadData.append('type', formData.type);
+      uploadData.append('category', formData.category);
+
+      if (formData.description) {
+        uploadData.append('description', formData.description);
+      }
+
+      if (formData.websiteUrl) {
+        uploadData.append('websiteUrl', formData.websiteUrl);
+      }
+
+      // إضافة بيانات العميل
+      if (formData.category === "INDIVIDUAL" && formData.clientName) {
+        uploadData.append('clientName', formData.clientName);
+      } else if (formData.category === "CORPORATE" && formData.companyId) {
+        uploadData.append('companyId', formData.companyId);
+      }
+
+      // إضافة الملفات
+      if (formData.type === "SOCIAL_MEDIA" && files.length > 0) {
+        // رفع صور متعددة للسوشال ميديا
+        files.forEach((file) => {
+          uploadData.append('media', file);
+        });
+      } else if (file) {
+        // رفع ملف واحد (LOGO, REEL, WEBSITE)
+        uploadData.append('media', file);
+      }
+
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+      let response;
 
       if (mode === "create") {
-        const response = await worksAPI.create(data);
-        console.log("Work created:", response.portfolioItem);
+        // استخدام Axios مع Progress Tracking للإنشاء
+        response = await axios.post(
+          `${apiUrl}/api/portfolio`,
+          uploadData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': token ? `Bearer ${token}` : '',
+            },
+            timeout: 600000, // 10 دقائق
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const percentCompleted = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total
+                );
+                setUploadProgress(percentCompleted);
+              }
+            }
+          }
+        );
+        console.log("Work created:", response.data);
       } else if (work) {
-        const response = await worksAPI.update(work.id, data);
-        console.log("Work updated:", response.portfolioItem);
+        // للتحديث، استخدام Axios أيضاً
+        response = await axios.put(
+          `${apiUrl}/api/portfolio/${work.id}`,
+          uploadData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': token ? `Bearer ${token}` : '',
+            },
+            timeout: 600000,
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const percentCompleted = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total
+                );
+                setUploadProgress(percentCompleted);
+              }
+            }
+          }
+        );
+        console.log("Work updated:", response.data);
       }
 
       router.push("/dashboard/works");
     } catch (err: any) {
-      setError(err.message || "فشل حفظ العمل");
+      console.error("Upload error:", err);
+      setError(err.response?.data?.error || err.message || "فشل حفظ العمل");
     } finally {
       setLoading(false);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -166,6 +250,58 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       {error && (
         <div className="p-4 rounded-lg bg-error/10 border-2 border-error/20 text-error">
           {error}
+        </div>
+      )}
+
+      {/* Progress Bar - يظهر أثناء الرفع */}
+      {isUploading && (
+        <div className="p-6 rounded-lg bg-primary/5 border-2 border-primary/20">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold text-foreground">
+              {uploadProgress < 100 ? "جاري الرفع..." : "جاري المعالجة..."}
+            </span>
+            <span className="text-sm font-bold text-primary">
+              {uploadProgress}%
+            </span>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full h-3 bg-border rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ease-out rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+
+          {/* File Size Info */}
+          {file && formData.type === "REEL" && (
+            <p className="mt-3 text-xs text-foreground/60 text-center">
+              📹 حجم الفيديو: {(file.size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          )}
+          {file && formData.type !== "REEL" && formData.type !== "SOCIAL_MEDIA" && (
+            <p className="mt-3 text-xs text-foreground/60 text-center">
+              🖼️ حجم الملف: {(file.size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          )}
+          {files.length > 0 && formData.type === "SOCIAL_MEDIA" && (
+            <p className="mt-3 text-xs text-foreground/60 text-center">
+              📸 عدد الصور: {files.length} | الحجم الإجمالي:{" "}
+              {(files.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024).toFixed(2)} MB
+            </p>
+          )}
+
+          {/* Upload Tips */}
+          {uploadProgress < 100 && (
+            <p className="mt-3 text-xs text-foreground/50 text-center">
+              💡 يرجى عدم إغلاق الصفحة حتى اكتمال الرفع
+            </p>
+          )}
+          {uploadProgress === 100 && (
+            <p className="mt-3 text-xs text-primary text-center animate-pulse">
+              ⏳ جاري معالجة الملف على السيرفر...
+            </p>
+          )}
         </div>
       )}
 
@@ -306,8 +442,18 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
               type="file"
               accept={formData.type === "REEL" ? "video/*" : "image/*"}
               onChange={handleFileChange}
-              className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+              disabled={isUploading}
+              className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             />
+            {/* عرض حجم الملف المختار */}
+            {file && !isUploading && (
+              <p className="mt-2 text-sm text-foreground/60">
+                📁 الملف المختار: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                {file.size > 200 * 1024 * 1024 && (
+                  <span className="text-error font-semibold"> - الملف كبير جداً! الحد الأقصى 200MB</span>
+                )}
+              </p>
+            )}
             {errors.file && (
               <p className="mt-2 text-sm text-error">{errors.file}</p>
             )}
@@ -340,7 +486,8 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
               accept="image/*"
               multiple
               onChange={handleMultipleFilesChange}
-              className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
+              disabled={isUploading}
+              className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             {errors.files && (
               <p className="mt-2 text-sm text-error">{errors.files}</p>
@@ -377,14 +524,20 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           type="button"
           onClick={() => router.back()}
           variant="secondary"
+          disabled={isUploading}
         >
           إلغاء
         </Button>
         <Button
           type="submit"
           loading={loading}
+          disabled={isUploading}
         >
-          {mode === "create" ? "إضافة العمل" : "حفظ التعديلات"}
+          {isUploading
+            ? `جاري الرفع... ${uploadProgress}%`
+            : mode === "create"
+              ? "إضافة العمل"
+              : "حفظ التعديلات"}
         </Button>
       </div>
     </form>
