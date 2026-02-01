@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   portfolio-frontend:
@@ -12,7 +12,7 @@ services:
     image: portfolio-frontend:latest
 
     ports:
-      - "${PORT:-3050}:3000"
+      - "${PORT:-3050}:3050"
 
     environment:
       - NODE_ENV=production
