@@ -37,6 +37,7 @@ interface Work {
   type: "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL";
   description?: string | null;
   thumbnailUrl?: string | null;
+  mediaUrl?: string | null;
   mediaType?: "IMAGE" | "VIDEO";
   websiteUrl?: string | null;
   category?: "INDIVIDUAL" | "CORPORATE";

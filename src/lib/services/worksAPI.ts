@@ -16,10 +16,9 @@ export interface Work {
   slug: string;
   createdAt: string;
   updatedAt: string;
-  // الباك إند الآن يرجع URLs جاهزة
-  mediaUrl?: string; // للشعار، الموقع، الريلز (ملف واحد)
+  // الباك إند الآن يرجع URL واحد لكل سجل (كل ملف = سجل منفصل)
+  mediaUrl?: string;
   mediaType?: string; // IMAGE أو VIDEO
-  mediaUrls?: string[]; // للسوشيال ميديا (صور متعددة)
   company?: {
     id: string;
     name: string;
@@ -54,8 +53,8 @@ export interface CreateWorkData {
   clientName?: string; // مطلوب للأفراد
   companyId?: string; // مطلوب للشركات
   websiteUrl?: string; // مطلوب للمواقع الإلكترونية
-  file?: File; // ملف واحد (للريلز، اللوجو، الموقع)
-  files?: File[]; // ملفات متعددة (للسوشال ميديا)
+  file?: File; // ملف واحد (للموقع فقط)
+  files?: File[]; // ملفات متعددة (للشعار، الريلز، السوشال ميديا)
 }
 
 class ApiError extends Error {
@@ -112,12 +111,15 @@ export const worksAPI = {
     const response = await fetchAPI(endpoint);
 
     // إذا الباك راجع object فيه portfolioItems
-    if (response && response.portfolioItems) {
-      return response.portfolioItems;
-    }
+    let items = response?.portfolioItems || (Array.isArray(response) ? response : []);
 
-    // إذا راجع array مباشرة
-    return Array.isArray(response) ? response : [];
+    // التأكد من وجود mediaUrl لكل سجل (fallback من مصادر مختلفة)
+    return items.map((item: any) => ({
+      ...item,
+      mediaUrl: item.mediaUrl
+        || (item.mediaUrls && item.mediaUrls.length > 0 ? item.mediaUrls[0] : undefined)
+        || (item.media && item.media.length > 0 ? item.media[0].fileUrl : undefined),
+    }));
   },
 
   async getBySlug(slug: string): Promise<Work> {
@@ -128,19 +130,22 @@ export const worksAPI = {
     const response = await fetchAPI(`/api/portfolio/${id}`);
 
     // إذا الباك راجع object فيه portfolioItem
-    if (response && response.portfolioItem) {
-      return response.portfolioItem;
-    }
+    const item = response?.portfolioItem || response;
 
-    // إذا راجع object مباشرة
-    return response;
+    // التأكد من وجود mediaUrl (fallback من مصادر مختلفة)
+    return {
+      ...item,
+      mediaUrl: item.mediaUrl
+        || (item.mediaUrls && item.mediaUrls.length > 0 ? item.mediaUrls[0] : undefined)
+        || (item.media && item.media.length > 0 ? item.media[0].fileUrl : undefined),
+    };
   },
 
   async getByType(type: WorkType): Promise<Work[]> {
     return fetchAPI(`/api/portfolio/type/${type}`);
   },
 
-  async create(data: CreateWorkData): Promise<{ portfolioItem: Work }> {
+  async create(data: CreateWorkData): Promise<{ portfolioItem?: Work; portfolioItems?: Work[]; message: string }> {
     const formData = new FormData();
 
     formData.append("title", data.title);

@@ -176,16 +176,9 @@ function WorksContent() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {works.map((work) => {
-                  // تحديد الصورة أو الفيديو
-                  // للسوشيال ميديا: استخدم mediaUrls (array)
-                  // للبقية: استخدم mediaUrl (string واحد)
-                  const isSocialMedia = work.type === "SOCIAL_MEDIA";
+                  // كل سجل الآن عنده mediaUrl واحد (الباك اند ينشئ سجل منفصل لكل ملف)
                   const isVideo = work.type === "REEL";
-
-                  // للسوشيال ميديا نعرض أول صورة من الـ array
-                  const mediaUrl = isSocialMedia && work.mediaUrls && work.mediaUrls.length > 0
-                    ? work.mediaUrls[0]
-                    : work.mediaUrl;
+                  const mediaUrl = work.mediaUrl;
 
                   return (
                   <div
@@ -211,12 +204,6 @@ function WorksContent() {
                               e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.3em'%3E🖼️%3C/text%3E%3C/svg%3E";
                             }}
                           />
-                        )}
-                        {/* مؤشر عدد الصور للسوشيال ميديا */}
-                        {isSocialMedia && work.mediaUrls && work.mediaUrls.length > 1 && (
-                          <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded-lg text-xs">
-                            +{work.mediaUrls.length - 1} صور
-                          </div>
                         )}
                       </div>
                     ) : (
@@ -251,6 +238,19 @@ function WorksContent() {
                         {work.clientName && (
                           <p className="text-sm text-foreground/70">
                             <span className="font-medium">العميل:</span> {work.clientName}
+                          </p>
+                        )}
+                        {work.type === "WEBSITE" && work.websiteUrl && (
+                          <p className="text-sm text-foreground/70">
+                            <span className="font-medium">الرابط:</span>{" "}
+                            <a
+                              href={work.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {work.websiteUrl}
+                            </a>
                           </p>
                         )}
                         {work.description && (

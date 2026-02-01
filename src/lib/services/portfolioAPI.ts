@@ -56,8 +56,8 @@ export interface Work {
   type: WorkType;
   status?: WorkStatus;
   thumbnailUrl?: string | null;
-  mediaUrl?: string | null; // Backend uses this
-  mediaType?: "IMAGE" | "VIDEO"; // Backend uses this
+  mediaUrl?: string | null; // كل سجل عنده URL واحد (كل ملف = سجل منفصل)
+  mediaType?: "IMAGE" | "VIDEO";
   publishDate?: string | null;
   isFeatured?: boolean;
   viewCount?: number;
@@ -156,15 +156,22 @@ export const portfolioAPI = {
     const count = response.count || 0;
 
     // Transform items to match our interface
-    items = Array.isArray(items) ? items.map((item: any) => ({
-      ...item,
-      // Add thumbnailUrl from mediaUrl for compatibility
-      thumbnailUrl: item.mediaUrl || item.thumbnailUrl,
-      // Add client from company for compatibility
-      client: item.company || item.client,
-      // Normalize viewCount
-      viewCount: item.viewCount || 0,
-    })) : [];
+    items = Array.isArray(items) ? items.map((item: any) => {
+      // استخراج mediaUrl من عدة مصادر محتملة
+      const resolvedMediaUrl = item.mediaUrl
+        || (item.mediaUrls && item.mediaUrls.length > 0 ? item.mediaUrls[0] : null)
+        || (item.media && item.media.length > 0 ? item.media[0].fileUrl : null);
+
+      return {
+        ...item,
+        mediaUrl: resolvedMediaUrl,
+        thumbnailUrl: item.thumbnailUrl || resolvedMediaUrl || null,
+        // Add client from company for compatibility
+        client: item.company || item.client,
+        // Normalize viewCount
+        viewCount: item.viewCount || 0,
+      };
+    }) : [];
 
     return {
       data: items,

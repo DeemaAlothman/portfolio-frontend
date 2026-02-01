@@ -22,11 +22,9 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
 
-  // الباك إند يرجع URLs جاهزة
+  // الباك إند يرجع URL واحد لكل سجل
   const [previewUrl, setPreviewUrl] = useState<string>(work?.mediaUrl || "");
-  const [previewUrls, setPreviewUrls] = useState<string[]>(
-    work?.mediaUrls || [] // معاينة الصور المتعددة
-  );
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [companies, setCompanies] = useState<Client[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
 
@@ -74,19 +72,19 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     }
   };
 
-  // معالجة رفع ملفات متعددة (للسوشال ميديا)
+  // معالجة رفع ملفات متعددة (SOCIAL_MEDIA, LOGO, REEL)
   const handleMultipleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
 
-    // حد أقصى 10 صور
+    // حد أقصى 10 ملفات
     if (selectedFiles.length > 10) {
-      setError("يمكنك رفع 10 صور كحد أقصى");
+      setError("يمكنك رفع 10 ملفات كحد أقصى");
       return;
     }
 
     setFiles(selectedFiles);
 
-    // إنشاء معاينات للصور
+    // إنشاء معاينات للملفات
     const urls = selectedFiles.map(file => URL.createObjectURL(file));
     setPreviewUrls(urls);
   };
@@ -112,10 +110,10 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       newErrors.companyId = "يجب اختيار الشركة";
     }
 
-    // للريلز: الفيديو إلزامي عند الإنشاء
-    if (formData.type === "REEL" && mode === "create" && !file) {
-      newErrors.file = "يجب رفع فيديو الريلز";
-      setError("يجب رفع فيديو الريلز قبل الإنشاء");
+    // للريلز: فيديو إلزامي عند الإنشاء (يقبل ملفات متعددة)
+    if (formData.type === "REEL" && mode === "create" && files.length === 0) {
+      newErrors.files = "يجب رفع فيديو واحد على الأقل";
+      setError("يجب رفع فيديو واحد على الأقل للريلز");
     }
 
     // للمواقع: رابط الزيارة إلزامي
@@ -130,10 +128,10 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       setError("يجب رفع صورة واحدة على الأقل للسوشال ميديا");
     }
 
-    // للوجو: صورة إلزامية
-    if (formData.type === "LOGO" && mode === "create" && !file) {
-      newErrors.file = "يجب رفع صورة الشعار";
-      setError("يجب رفع صورة الشعار");
+    // للوجو: صورة إلزامية (يقبل ملفات متعددة)
+    if (formData.type === "LOGO" && mode === "create" && files.length === 0) {
+      newErrors.files = "يجب رفع صورة واحدة على الأقل";
+      setError("يجب رفع صورة واحدة على الأقل للشعار");
     }
 
     setErrors(newErrors);
@@ -173,14 +171,17 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       }
 
       // إضافة الملفات
-      if (formData.type === "SOCIAL_MEDIA" && files.length > 0) {
-        // رفع صور متعددة للسوشال ميديا
-        files.forEach((file) => {
-          uploadData.append('media', file);
-        });
-      } else if (file) {
-        // رفع ملف واحد (LOGO, REEL, WEBSITE)
+      if (mode === "edit" && file) {
+        // التحديث: ملف واحد فقط يستبدل القديم
         uploadData.append('media', file);
+      } else if (formData.type === "WEBSITE" && file) {
+        // إنشاء موقع: ملف واحد
+        uploadData.append('media', file);
+      } else if (files.length > 0) {
+        // إنشاء LOGO/REEL/SOCIAL_MEDIA: ملفات متعددة (كل ملف = سجل منفصل)
+        files.forEach((f) => {
+          uploadData.append('media', f);
+        });
       }
 
       const token = localStorage.getItem('token');
@@ -274,19 +275,14 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           </div>
 
           {/* File Size Info */}
-          {file && formData.type === "REEL" && (
-            <p className="mt-3 text-xs text-foreground/60 text-center">
-              📹 حجم الفيديو: {(file.size / 1024 / 1024).toFixed(2)} MB
-            </p>
-          )}
-          {file && formData.type !== "REEL" && formData.type !== "SOCIAL_MEDIA" && (
+          {file && formData.type === "WEBSITE" && (
             <p className="mt-3 text-xs text-foreground/60 text-center">
               🖼️ حجم الملف: {(file.size / 1024 / 1024).toFixed(2)} MB
             </p>
           )}
-          {files.length > 0 && formData.type === "SOCIAL_MEDIA" && (
+          {files.length > 0 && formData.type !== "WEBSITE" && (
             <p className="mt-3 text-xs text-foreground/60 text-center">
-              📸 عدد الصور: {files.length} | الحجم الإجمالي:{" "}
+              📁 عدد الملفات: {files.length} | الحجم الإجمالي:{" "}
               {(files.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024).toFixed(2)} MB
             </p>
           )}
@@ -429,14 +425,14 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       {/* File Upload Section */}
       <div className="pt-6 border-t-2 border-border">
         <h3 className="text-lg font-semibold text-primary mb-4">
-          {formData.type === "REEL" && "رفع الفيديو"}
-          {formData.type === "LOGO" && "رفع الشعار"}
+          {formData.type === "REEL" && (mode === "create" ? "رفع الفيديوهات (حتى 10 ملفات - كل فيديو = بطاقة منفصلة)" : "استبدال الفيديو")}
+          {formData.type === "LOGO" && (mode === "create" ? "رفع الشعارات (حتى 10 ملفات - كل شعار = بطاقة منفصلة)" : "استبدال الشعار")}
           {formData.type === "WEBSITE" && "رفع صورة الموقع"}
-          {formData.type === "SOCIAL_MEDIA" && "رفع الصور (حتى 10 صور)"}
+          {formData.type === "SOCIAL_MEDIA" && (mode === "create" ? "رفع الصور (حتى 10 ملفات - كل صورة = بطاقة منفصلة)" : "استبدال الصورة")}
         </h3>
 
-        {/* Single File Upload (LOGO, REEL, WEBSITE) */}
-        {formData.type !== "SOCIAL_MEDIA" && (
+        {/* Single File Upload (WEBSITE, or EDIT mode for any type) */}
+        {(formData.type === "WEBSITE" || mode === "edit") && (
           <div>
             <input
               type="file"
@@ -445,7 +441,6 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
               disabled={isUploading}
               className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            {/* عرض حجم الملف المختار */}
             {file && !isUploading && (
               <p className="mt-2 text-sm text-foreground/60">
                 📁 الملف المختار: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
@@ -457,33 +452,32 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
             {errors.file && (
               <p className="mt-2 text-sm text-error">{errors.file}</p>
             )}
-            {previewUrl && formData.type !== "REEL" && (
+            {previewUrl && (
               <div className="mt-4">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full max-w-md h-auto rounded-lg border-2 border-border"
-                />
-              </div>
-            )}
-            {previewUrl && formData.type === "REEL" && (
-              <div className="mt-4">
-                <video
-                  src={previewUrl}
-                  controls
-                  className="w-full max-w-md h-auto rounded-lg border-2 border-border"
-                />
+                {formData.type === "REEL" ? (
+                  <video
+                    src={previewUrl}
+                    controls
+                    className="w-full max-w-md h-auto rounded-lg border-2 border-border"
+                  />
+                ) : (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full max-w-md h-auto rounded-lg border-2 border-border"
+                  />
+                )}
               </div>
             )}
           </div>
         )}
 
-        {/* Multiple Files Upload (SOCIAL_MEDIA) */}
-        {formData.type === "SOCIAL_MEDIA" && (
+        {/* Multiple Files Upload (LOGO, REEL, SOCIAL_MEDIA) - فقط عند الإنشاء */}
+        {formData.type !== "WEBSITE" && mode === "create" && (
           <div>
             <input
               type="file"
-              accept="image/*"
+              accept={formData.type === "REEL" ? "video/*" : "image/*"}
               multiple
               onChange={handleMultipleFilesChange}
               disabled={isUploading}
@@ -496,11 +490,19 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
               <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                 {previewUrls.map((url, index) => (
                   <div key={index} className="relative">
-                    <img
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-48 object-cover rounded-lg border-2 border-border"
-                    />
+                    {formData.type === "REEL" ? (
+                      <video
+                        src={url}
+                        controls
+                        className="w-full h-48 object-cover rounded-lg border-2 border-border"
+                      />
+                    ) : (
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-48 object-cover rounded-lg border-2 border-border"
+                      />
+                    )}
                     <button
                       type="button"
                       onClick={() => removeFile(index)}
