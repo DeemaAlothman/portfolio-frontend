@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { portfolioAPI, Client, ClientType } from "@/lib/services/portfolioAPI";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ClientsPage() {
+  const { locale, t } = useLanguage();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ClientType | "ALL">("ALL");
@@ -32,7 +34,7 @@ export default function ClientsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-foreground/60">جاري التحميل...</p>
+          <p className="text-foreground/60">{t('clients.loading')}</p>
         </div>
       </div>
     );
@@ -44,10 +46,10 @@ export default function ClientsPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-6xl font-bold text-primary mb-4">
-            عملاؤنا
+            {t('clients.title')}
           </h1>
           <p className="text-lg text-foreground/60">
-            فخورون بثقة عملائنا ونجاحهم ({clients.length} عميل)
+            {t('clients.subtitle')} ({clients.length} {clients.length === 1 ? t('clients.client.singular') : clients.length === 2 ? t('clients.client.dual') : t('clients.client.plural')})
           </p>
         </div>
 
@@ -61,7 +63,7 @@ export default function ClientsPage() {
                 : "bg-white border-2 border-border text-foreground hover:bg-accent"
             }`}
           >
-            الكل
+            {t('clients.filter.all')}
           </button>
           <button
             onClick={() => setFilter("COMPANY")}
@@ -71,7 +73,7 @@ export default function ClientsPage() {
                 : "bg-white border-2 border-border text-foreground hover:bg-accent"
             }`}
           >
-            شركات
+            {t('clients.filter.companies')}
           </button>
           <button
             onClick={() => setFilter("INDIVIDUAL")}
@@ -81,14 +83,14 @@ export default function ClientsPage() {
                 : "bg-white border-2 border-border text-foreground hover:bg-accent"
             }`}
           >
-            أفراد
+            {t('clients.filter.individuals')}
           </button>
         </div>
 
         {/* Clients Grid */}
         {clients.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-xl text-foreground/60">لا يوجد عملاء</p>
+            <p className="text-xl text-foreground/60">{t('clients.empty')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -115,7 +117,7 @@ export default function ClientsPage() {
                     {client.name}
                   </h3>
                   <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white text-sm font-semibold mb-3">
-                    {client.type === "COMPANY" ? "🏢 شركة" : "👤 عميل فردي"}
+                    {client.type === "COMPANY" ? `🏢 ${t('clients.clientType.company')}` : `👤 ${t('clients.clientType.individual')}`}
                   </span>
                   {client.industry && (
                     <p className="text-sm text-foreground/60 font-medium">
@@ -142,22 +144,22 @@ export default function ClientsPage() {
                     <p className="text-primary font-bold text-lg">
                       {client._count.works}{" "}
                       {client._count.works === 1
-                        ? "عمل"
+                        ? t('clients.work.singular')
                         : client._count.works === 2
-                        ? "عملان"
-                        : "أعمال"}
+                        ? t('clients.work.dual')
+                        : t('clients.work.plural')}
                     </p>
                     <p className="text-primary/70 text-xs mt-1">
-                      تم إنجازها لهذا العميل
+                      {t('clients.completedFor')}
                     </p>
                   </div>
                 )}
 
                 {/* View Details Indicator */}
                 <div className="flex items-center justify-center text-primary font-semibold group-hover:gap-3 transition-all mt-6">
-                  <span>عرض الأعمال</span>
+                  <span>{t('clients.viewWorks')}</span>
                   <svg
-                    className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                    className={`w-5 h-5 transition-transform ${locale === 'ar' ? 'group-hover:translate-x-1' : 'group-hover:-translate-x-1 rotate-180'}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"

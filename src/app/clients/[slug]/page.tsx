@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { portfolioAPI, WorkType, Client as APIClient, Work as APIWork } from "@/lib/services/portfolioAPI";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Helper function to get full image URL
 const getImageUrl = (url?: string | null): string | undefined => {
@@ -21,6 +22,7 @@ interface ClientWithWorks extends APIClient {
 }
 
 export default function ClientDetailPage() {
+  const { locale, t } = useLanguage();
   const params = useParams();
   const slug = params.slug as string;
 
@@ -39,20 +41,20 @@ export default function ClientDetailPage() {
       const data = await portfolioAPI.getClientBySlug(slug);
       setClient(data as ClientWithWorks);
     } catch (err: any) {
-      setError(err.message || "فشل تحميل بيانات العميل");
+      setError(err.message || t('clientDetail.error'));
     } finally {
       setLoading(false);
     }
   };
 
   const getWorkTypeLabel = (type: string) => {
-    const labels = {
-      LOGO: "شعارات",
-      WEBSITE: "مواقع",
-      SOCIAL_MEDIA: "سوشيال ميديا",
-      REEL: "ريلز",
+    const labels: Record<string, keyof typeof import('@/locales/ar').ar> = {
+      LOGO: "clientDetail.workType.logoDesign",
+      WEBSITE: "clientDetail.workType.webDesign",
+      SOCIAL_MEDIA: "clientDetail.workType.socialMedia",
+      REEL: "clientDetail.workType.motionGraphics",
     };
-    return labels[type as keyof typeof labels] || type;
+    return t(labels[type] || "clientDetail.workType.logoDesign");
   };
 
   const getWorkTypeEmoji = (type: string) => {
@@ -86,7 +88,7 @@ export default function ClientDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-foreground/60">جاري التحميل...</p>
+          <p className="text-foreground/60">{t('clientDetail.loading')}</p>
         </div>
       </div>
     );
@@ -131,7 +133,7 @@ export default function ClientDetailPage() {
             {/* Client Info */}
             <div className="flex-1 text-center md:text-right">
               <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
-                خدماتنا لشركة {client.name}
+                {t('clientDetail.services')} {client.name}
               </h1>
               <p className="text-lg text-foreground/60 mb-4">
                 {client.description || `مشروع ريفر للتطوير العقاري`}
@@ -143,7 +145,7 @@ export default function ClientDetailPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-semibold"
                 >
-                  🌐 زيارة الموقع
+                  🌐 {t('home.visitWebsite')}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -179,7 +181,7 @@ export default function ClientDetailPage() {
                   : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
               }`}
             >
-              الكل
+              {t('clientDetail.filter.all')}
             </button>
             <button
               onClick={() => setWorkTypeFilter("REEL")}
@@ -295,7 +297,7 @@ export default function ClientDetailPage() {
                           className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-semibold mb-2"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          🌐 زيارة الموقع
+                          🌐 {t('home.visitWebsite')}
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
@@ -335,7 +337,7 @@ export default function ClientDetailPage() {
             <div className="text-center py-20">
               <div className="text-8xl mb-6">📭</div>
               <h3 className="text-2xl font-bold text-foreground/60 mb-2">
-                لا توجد أعمال من هذا النوع
+                {t('clientDetail.empty.description')}
               </h3>
               <p className="text-foreground/40">
                 جرب فلتر آخر لعرض الأعمال

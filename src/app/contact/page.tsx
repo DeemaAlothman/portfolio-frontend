@@ -4,8 +4,10 @@ import { useState, FormEvent } from "react";
 import { portfolioAPI } from "@/lib/services/portfolioAPI";
 import Input from "@/components/auth/Input";
 import Button from "@/components/auth/Button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ContactPage() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -52,7 +54,7 @@ export default function ContactPage() {
 
       setTimeout(() => setSuccess(false), 5000);
     } catch (err: any) {
-      setError(err.message || "فشل إرسال الرسالة");
+      setError(err.message || t('contact.form.error'));
     } finally {
       setSubmitting(false);
     }
@@ -64,10 +66,10 @@ export default function ContactPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-6xl font-bold text-primary mb-4">
-            تواصل معنا
+            {t('contact.title')}
           </h1>
           <p className="text-lg text-foreground/60">
-            نحن هنا للإجابة على استفساراتك ومساعدتك في تحقيق أهدافك
+            {t('contact.subtitle')}
           </p>
         </div>
 
@@ -75,12 +77,12 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="bg-white rounded-lg border-2 border-border p-8">
             <h2 className="text-2xl font-bold text-primary mb-6">
-              أرسل لنا رسالة
+              {t('contact.form.title')}
             </h2>
 
             {success && (
               <div className="mb-6 p-4 rounded-lg bg-success/10 border-2 border-success/20 text-success">
-                تم إرسال رسالتك بنجاح! سنتواصل معك قريباً
+                {t('contact.form.success')}
               </div>
             )}
 
@@ -92,44 +94,44 @@ export default function ContactPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="الاسم *"
+                label={t('contact.form.name')}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="اسمك الكامل"
+                placeholder={t('contact.form.namePlaceholder')}
                 required
               />
 
               <Input
-                label="البريد الإلكتروني *"
+                label={t('contact.form.email')}
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="example@email.com"
+                placeholder={t('contact.form.emailPlaceholder')}
                 required
               />
 
               <Input
-                label="رقم الهاتف"
+                label={t('contact.form.phone')}
                 name="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="+970 599 123 456"
+                placeholder={t('contact.form.phonePlaceholder')}
               />
 
               <Input
-                label="الموضوع"
+                label={t('contact.form.subject')}
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
-                placeholder="موضوع الرسالة"
+                placeholder={t('contact.form.subjectPlaceholder')}
               />
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  الرسالة *
+                  {t('contact.form.message')}
                 </label>
                 <textarea
                   name="message"
@@ -137,7 +139,7 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  placeholder="اكتب رسالتك هنا..."
+                  placeholder={t('contact.form.messagePlaceholder')}
                   className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
                 />
               </div>
@@ -147,7 +149,7 @@ export default function ContactPage() {
                 loading={submitting}
                 variant="primary"
               >
-                إرسال الرسالة
+                {t('contact.form.submit')}
               </Button>
             </form>
           </div>
@@ -156,7 +158,7 @@ export default function ContactPage() {
           <div>
             <div className="bg-white rounded-lg border-2 border-border p-8 mb-6">
               <h2 className="text-2xl font-bold text-primary mb-6">
-                معلومات التواصل
+                {t('contact.info.title')}
               </h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
@@ -165,7 +167,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">
-                      البريد الإلكتروني
+                      {t('contact.info.email')}
                     </h3>
                     <a
                       href="mailto:info@rastaka.com"
@@ -182,7 +184,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">
-                      الهاتف
+                      {t('contact.info.phone')}
                     </h3>
                     <a
                       href="tel:+970599123456"
@@ -199,9 +201,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">
-                      العنوان
+                      {t('contact.info.address')}
                     </h3>
-                    <p className="text-foreground/70">رام الله، فلسطين</p>
+                    <p className="text-foreground/70">{t('contact.info.addressValue')}</p>
                   </div>
                 </div>
               </div>
@@ -210,11 +212,11 @@ export default function ContactPage() {
             {/* Working Hours */}
             <div className="bg-primary/5 rounded-lg border-2 border-primary/20 p-8">
               <h3 className="text-xl font-bold text-primary mb-4">
-                ساعات العمل
+                {t('contact.hours.title')}
               </h3>
               <div className="space-y-2 text-foreground/70">
-                <p>الأحد - الخميس: 9:00 صباحاً - 5:00 مساءً</p>
-                <p>الجمعة - السبت: مغلق</p>
+                <p>{t('contact.hours.weekdays')}</p>
+                <p>{t('contact.hours.weekend')}</p>
               </div>
             </div>
           </div>
@@ -223,10 +225,10 @@ export default function ContactPage() {
         {/* FAQ or Additional Info */}
         <div className="mt-16 text-center">
           <h2 className="text-3xl font-bold text-primary mb-6">
-            لديك سؤال سريع؟
+            {t('contact.quickQuestion.title')}
           </h2>
           <p className="text-lg text-foreground/60 mb-8">
-            تواصل معنا عبر واتساب للحصول على رد فوري
+            {t('contact.quickQuestion.subtitle')}
           </p>
           <a
             href="https://wa.me/970599123456"
@@ -235,7 +237,7 @@ export default function ContactPage() {
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-success text-white hover:bg-success/90 transition-all text-lg font-medium"
           >
             <span className="text-2xl">💬</span>
-            تواصل عبر واتساب
+            {t('contact.quickQuestion.button')}
           </a>
         </div>
       </div>

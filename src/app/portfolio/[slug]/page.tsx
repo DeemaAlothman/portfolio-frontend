@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { portfolioAPI, Work } from "@/lib/services/portfolioAPI";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function WorkDetailPage() {
+  const { locale, t } = useLanguage();
   const params = useParams();
   const slug = params.slug as string;
   const [work, setWork] = useState<Work | null>(null);
@@ -34,7 +36,7 @@ export default function WorkDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-foreground/60 text-lg">جاري التحميل...</p>
+          <p className="text-foreground/60 text-lg">{t('workDetail.loading')}</p>
         </div>
       </div>
     );
@@ -104,7 +106,7 @@ export default function WorkDetailPage() {
         {work.description && (
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-6">
-              نظرة عامة
+              {t('workDetail.overview')}
             </h2>
             <p className="text-lg text-foreground/80 leading-relaxed whitespace-pre-wrap">
               {work.description}
@@ -144,7 +146,7 @@ export default function WorkDetailPage() {
                       className="w-full h-full object-cover"
                     >
                       <source src={`${process.env.NEXT_PUBLIC_API_URL}${media.fileUrl}`} type="video/mp4" />
-                      متصفحك لا يدعم تشغيل الفيديو
+                      {t('workDetail.videoNotSupported')}
                     </video>
                   )}
                 </div>
@@ -157,7 +159,7 @@ export default function WorkDetailPage() {
         {work.sections && work.sections.length > 0 && (
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-6">
-              تفاصيل المشروع
+              {t('workDetail.details')}
             </h2>
             <div className="space-y-8">
               {work.sections
@@ -206,7 +208,7 @@ export default function WorkDetailPage() {
                                 className="w-full h-full object-cover"
                               >
                                 <source src={`${process.env.NEXT_PUBLIC_API_URL}${media.fileUrl}`} type="video/mp4" />
-                                متصفحك لا يدعم تشغيل الفيديو
+                                {t('workDetail.videoNotSupported')}
                               </video>
                             )}
                           </div>
@@ -223,7 +225,7 @@ export default function WorkDetailPage() {
         {work.tags && work.tags.length > 0 && (
           <div className="mb-12">
             <h3 className="text-2xl font-bold text-foreground mb-4">
-              الوسوم
+              {t('workDetail.tags')}
             </h3>
             <div className="flex flex-wrap gap-3">
               {work.tags.map((tagWrapper) => (
@@ -242,7 +244,7 @@ export default function WorkDetailPage() {
         {work.client && (
           <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 mb-12">
             <h3 className="text-2xl font-bold text-foreground mb-4">
-              معلومات العميل
+              {t('workDetail.client')}
             </h3>
             <div className="flex items-start gap-6">
               {work.client.logoUrl && (

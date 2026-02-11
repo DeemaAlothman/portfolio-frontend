@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { portfolioAPI, ClientType as APIClientType, WorkType as APIWorkType } from "@/lib/services/portfolioAPI";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type ClientType = "COMPANY" | "INDIVIDUAL" | "ALL";
 type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "ALL";
@@ -61,6 +62,7 @@ interface Work {
 }
 
 export default function Home() {
+  const { locale, t } = useLanguage();
   const [clients, setClients] = useState<Client[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,13 +118,13 @@ export default function Home() {
   };
 
   const getWorkTypeLabel = (type: string) => {
-    const labels = {
-      LOGO: "شعار",
-      WEBSITE: "موقع إلكتروني",
-      SOCIAL_MEDIA: "سوشيال ميديا",
-      REEL: "ريلز",
+    const labels: Record<string, keyof typeof import('@/locales/ar').ar> = {
+      LOGO: "home.workType.logo",
+      WEBSITE: "home.workType.website",
+      SOCIAL_MEDIA: "home.workType.socialMedia",
+      REEL: "home.workType.reel",
     };
-    return labels[type as keyof typeof labels] || type;
+    return t(labels[type] || "home.workType.logo");
   };
 
   const getWorkTypeEmoji = (type: string) => {
@@ -141,13 +143,13 @@ export default function Home() {
       <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-20 px-4 sm:px-6 lg:px-8 border-b-2 border-border">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            معرض أعمالنا
+            {t('home.title')}
           </h1>
           <p className="text-xl md:text-2xl text-foreground/80 max-w-3xl mx-auto mb-4">
-            استكشف مجموعة متنوعة من أعمالنا الإبداعية والاحترافية
+            {t('home.subtitle')}
           </p>
           <p className="text-lg text-foreground/60 max-w-2xl mx-auto mb-12">
-            نحن فريق Rastaka المتخصص في تقديم حلول إبداعية ومبتكرة
+            {t('home.description')}
           </p>
         </div>
       </section>
@@ -164,7 +166,7 @@ export default function Home() {
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
             >
-              الكل
+              {t('home.filter.all')}
             </button>
             <button
               onClick={() => setClientFilter("INDIVIDUAL")}
@@ -174,7 +176,7 @@ export default function Home() {
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
             >
-              👤 أعمال فردية
+              👤 {t('home.filter.individual')}
             </button>
             <button
               onClick={() => setClientFilter("COMPANY")}
@@ -184,7 +186,7 @@ export default function Home() {
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
             >
-              🏢 أعمال الشركات
+              🏢 {t('home.filter.company')}
             </button>
           </div>
         </div>
@@ -203,7 +205,7 @@ export default function Home() {
                     : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
                 }`}
               >
-                الكل
+                {t('home.filter.all')}
               </button>
               <button
                 onClick={() => setWorkTypeFilter("REEL")}
@@ -213,7 +215,7 @@ export default function Home() {
                     : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
                 }`}
               >
-                🎬 ريلز
+                🎬 {t('home.workTypeButton.reel')}
               </button>
               <button
                 onClick={() => setWorkTypeFilter("LOGO")}
@@ -223,7 +225,7 @@ export default function Home() {
                     : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
                 }`}
               >
-                🎨 شعارات
+                🎨 {t('home.workTypeButton.logo')}
               </button>
               <button
                 onClick={() => setWorkTypeFilter("SOCIAL_MEDIA")}
@@ -233,7 +235,7 @@ export default function Home() {
                     : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
                 }`}
               >
-                📱 سوشيال ميديا
+                📱 {t('home.workTypeButton.socialMedia')}
               </button>
               <button
                 onClick={() => setWorkTypeFilter("WEBSITE")}
@@ -243,7 +245,7 @@ export default function Home() {
                     : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
                 }`}
               >
-                💻 مواقع
+                💻 {t('home.workTypeButton.website')}
               </button>
             </div>
           </div>
@@ -258,7 +260,7 @@ export default function Home() {
               <div className="flex flex-col items-center gap-4">
                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-foreground/60 text-lg">
-                  جاري التحميل...
+                  {t('home.loading')}
                 </p>
               </div>
             </div>
@@ -268,10 +270,10 @@ export default function Home() {
               <div className="text-center py-20">
                 <div className="text-8xl mb-6">📭</div>
                 <h2 className="text-3xl font-bold text-foreground/60 mb-4">
-                  لا توجد أعمال فردية بعد
+                  {t('home.empty.individual')}
                 </h2>
                 <p className="text-foreground/40 text-lg">
-                  سنضيف الأعمال الفردية قريباً
+                  {t('home.empty.individualDesc')}
                 </p>
               </div>
             ) : (
@@ -304,7 +306,7 @@ export default function Home() {
                               className="w-full h-full object-cover"
                             >
                               <source src={getImageUrl(work.thumbnailUrl)} type="video/mp4" />
-                              متصفحك لا يدعم تشغيل الفيديو
+                              {t('home.videoNotSupported')}
                             </video>
                           ) : work.thumbnailUrl ? (
                             <img
@@ -353,7 +355,7 @@ export default function Home() {
                               className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-semibold mb-2"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              🌐 زيارة الموقع
+                              🌐 {t('home.visitWebsite')}
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
@@ -363,7 +365,7 @@ export default function Home() {
                           {/* Publish Date */}
                           {work.publishDate && (
                             <p className="text-foreground/50 text-xs mb-1">
-                              📅 {new Date(work.publishDate).toLocaleDateString('ar-SA', {
+                              📅 {new Date(work.publishDate).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric'
@@ -374,7 +376,7 @@ export default function Home() {
                           {/* View Count */}
                           {work.viewCount !== undefined && work.viewCount !== null && work.viewCount > 0 && (
                             <p className="text-foreground/50 text-xs">
-                              👁️ {work.viewCount.toLocaleString('ar-SA')} مشاهدة
+                              👁️ {work.viewCount.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US')} {t('home.views')}
                             </p>
                           )}
                         </div>
@@ -395,10 +397,10 @@ export default function Home() {
             <div className="text-center py-20">
               <div className="text-8xl mb-6">📭</div>
               <h2 className="text-3xl font-bold text-foreground/60 mb-4">
-                لا يوجد عملاء بعد
+                {t('home.empty.clients')}
               </h2>
               <p className="text-foreground/40 text-lg">
-                سنضيف عملاءنا المميزين قريباً
+                {t('home.empty.clientsDesc')}
               </p>
             </div>
           ) : (
@@ -406,17 +408,17 @@ export default function Home() {
               <div className="text-center mb-12">
                 <h2 className="text-4xl font-bold text-foreground mb-4">
                   {clientFilter === "COMPANY"
-                    ? "شركاؤنا من الشركات"
-                    : "جميع عملائنا"}
+                    ? t('home.heading.company')
+                    : t('home.heading.all')}
                 </h2>
                 <p className="text-xl text-foreground/60">
                   {clients.length}{" "}
                   {clients.length === 1
-                    ? "عميل"
+                    ? t('home.client.singular')
                     : clients.length === 2
-                    ? "عميلان"
-                    : "عملاء"}{" "}
-                  {clientFilter === "COMPANY" ? "من الشركات" : ""}
+                    ? t('home.client.dual')
+                    : t('home.client.plural')}{" "}
+                  {clientFilter === "COMPANY" ? t('home.heading.fromCompanies') : ""}
                 </p>
               </div>
 
@@ -452,7 +454,7 @@ export default function Home() {
                           {client.name}
                         </h3>
                         <span className="inline-block px-5 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold shadow-soft">
-                          {client.type === "COMPANY" ? "🏢 شركة" : "👤 عميل فردي"}
+                          {client.type === "COMPANY" ? `🏢 ${t('home.clientType.company')}` : `👤 ${t('home.clientType.individual')}`}
                         </span>
                       </div>
 
@@ -471,19 +473,19 @@ export default function Home() {
                           </p>
                           <p className="text-primary/70 text-sm mt-1">
                             {client._count.works === 1
-                              ? "عمل"
+                              ? t('home.work.singular')
                               : client._count.works === 2
-                              ? "عملان"
-                              : "أعمال"}
+                              ? t('home.work.dual')
+                              : t('home.work.plural')}
                           </p>
                         </div>
                       )}
 
                       {/* View Button */}
                       <div className="flex items-center justify-center gap-2 text-primary font-bold text-lg group-hover:gap-4 transition-all">
-                        <span>عرض الأعمال</span>
+                        <span>{t('home.viewWorks')}</span>
                         <svg
-                          className="w-6 h-6 group-hover:translate-x-1 transition-transform"
+                          className={`w-6 h-6 transition-transform ${locale === 'ar' ? 'group-hover:translate-x-1' : 'group-hover:-translate-x-1 rotate-180'}`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -509,18 +511,17 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary via-primary/90 to-secondary">
         <div className="max-w-5xl mx-auto text-center text-white">
           <h2 className="text-5xl font-bold mb-6">
-            هل تريد أن تكون من عملائنا؟
+            {t('home.cta.title')}
           </h2>
           <p className="text-2xl mb-10 text-white/90 leading-relaxed">
-            انضم إلى قائمة عملائنا المميزين واحصل على خدمات احترافية تليق بعلامتك
-            التجارية
+            {t('home.cta.description')}
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link
               href="/contact"
               className="px-10 py-5 bg-white text-primary rounded-full hover:bg-white/90 transition-all text-xl font-bold shadow-hover"
             >
-              تواصل معنا الآن 📧
+              {t('home.cta.button')} 📧
             </Link>
           </div>
         </div>
