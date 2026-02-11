@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { portfolioAPI, ClientType as APIClientType, WorkType as APIWorkType } from "@/lib/services/portfolioAPI";
 import { useLanguage } from "@/contexts/LanguageContext";
+import HeroSlider from "@/components/public/HeroSlider";
 
 type ClientType = "COMPANY" | "INDIVIDUAL" | "ALL";
 type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "ALL";
@@ -140,19 +141,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-20 px-4 sm:px-6 lg:px-8 border-b-2 border-border">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {t('home.title')}
-          </h1>
-          <p className="text-xl md:text-2xl text-foreground/80 max-w-3xl mx-auto mb-4">
-            {t('home.subtitle')}
-          </p>
-          <p className="text-lg text-foreground/60 max-w-2xl mx-auto mb-12">
-            {t('home.description')}
-          </p>
-        </div>
-      </section>
+      <HeroSlider />
 
       {/* Client Type Filter Tabs */}
       <section className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b-2 border-border shadow-sm">

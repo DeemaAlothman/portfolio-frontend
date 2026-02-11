@@ -73,7 +73,7 @@ const HeroSlider = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-screen overflow-hidden shadow-xl border-b-4 border-primary/20">
       {/* Slide 1 - Portfolio */}
       <div
         className={`absolute inset-0 transition-opacity duration-1000 ${
@@ -87,7 +87,7 @@ const HeroSlider = () => {
           {/* Content - Slides from LEFT */}
           <div
             key={`slide-1-content-${animationKey}`}
-            className={`flex-1 pr-8 ${
+            className={`flex-1 pr-16 lg:pr-24 ${
               currentSlide === 0 ? 'animate-slideFromLeft' : ''
             }`}
           >
@@ -152,7 +152,7 @@ const HeroSlider = () => {
           {/* Content - Slides from RIGHT */}
           <div
             key={`slide-2-content-${animationKey}`}
-            className={`flex-1 pl-8 bg-white h-full flex flex-col justify-center ${
+            className={`flex-1 pl-16 lg:pl-24 pr-12 bg-white h-full flex flex-col justify-center ${
               currentSlide === 1 ? 'animate-slideFromRight' : ''
             }`}
           >
