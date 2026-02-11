@@ -4,7 +4,7 @@ export const ar = {
   'header.portfolio': 'مَعْرِضُ أَعْمَالِنَا',
   'header.nav.home': 'الرئيسية',
   'header.nav.services': 'الخدمات',
-  'header.nav.portfolio': 'أعمالنا',
+  'header.nav.portfolio': 'معرض أعمالنا',
   'header.nav.about': 'عن رستقة',
   'header.nav.blog': 'المدونة',
   'header.nav.contact': 'تواصل معنا',

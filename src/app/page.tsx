@@ -506,12 +506,12 @@ export default function Home() {
             {t('home.cta.description')}
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link
-              href="/contact"
+            <a
+              href="https://rastaka.net/contact/"
               className="px-10 py-5 bg-white text-primary rounded-full hover:bg-white/90 transition-all text-xl font-bold shadow-hover"
             >
               {t('home.cta.button')} 📧
-            </Link>
+            </a>
           </div>
         </div>
       </section>
