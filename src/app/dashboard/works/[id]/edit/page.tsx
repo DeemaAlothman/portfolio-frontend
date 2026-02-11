@@ -56,7 +56,7 @@ function EditWorkContent() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-primary mb-2">تعديل العمل</h1>
-          <p className="text-foreground/60">تعديل بيانات العمل: {work.title}</p>
+          <p className="text-foreground/60">تعديل بيانات العمل: {work.title || 'بدون عنوان'}</p>
         </div>
 
         <div className="bg-white rounded-lg border-2 border-border p-6">

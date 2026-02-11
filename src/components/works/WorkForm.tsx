@@ -100,8 +100,6 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.title) newErrors.title = "العنوان مطلوب";
-
     // التحقق من نوع العميل
     if (formData.category === "INDIVIDUAL" && !formData.clientName) {
       newErrors.clientName = "اسم العميل مطلوب للأفراد";
@@ -151,7 +149,9 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     try {
       // بناء FormData للإرسال
       const uploadData = new FormData();
-      uploadData.append('title', formData.title);
+      if (formData.title) {
+        uploadData.append('title', formData.title);
+      }
       uploadData.append('type', formData.type);
       uploadData.append('category', formData.category);
 
@@ -388,7 +388,7 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
 
         {/* Title */}
         <Input
-          label="العنوان *"
+          label="العنوان (اختياري)"
           type="text"
           placeholder="مثال: تصميم شعار شركة XYZ"
           value={formData.title}

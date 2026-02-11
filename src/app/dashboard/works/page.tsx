@@ -197,7 +197,7 @@ function WorksContent() {
                         ) : (
                           <img
                             src={mediaUrl}
-                            alt={work.title}
+                            alt={work.title || 'بدون عنوان'}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               console.error("Image load error:", mediaUrl);
@@ -221,7 +221,7 @@ function WorksContent() {
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="text-lg font-semibold text-primary line-clamp-1">
-                          {work.title}
+                          {work.title || 'بدون عنوان'}
                         </h3>
                         {getCategoryBadge(work.category)}
                       </div>
@@ -290,7 +290,7 @@ function WorksContent() {
         onClose={() => setDeleteModal({ isOpen: false, work: null })}
         onConfirm={handleDeleteConfirm}
         title="حذف العمل"
-        message={`هل أنت متأكد من حذف العمل "${deleteModal.work?.title}"؟\n\nسيتم حذف العمل نهائياً ولا يمكن التراجع عن هذا الإجراء.`}
+        message={`هل أنت متأكد من حذف العمل "${deleteModal.work?.title || 'بدون عنوان'}"؟\n\nسيتم حذف العمل نهائياً ولا يمكن التراجع عن هذا الإجراء.`}
         confirmText="حذف"
         cancelText="إلغاء"
         variant="danger"

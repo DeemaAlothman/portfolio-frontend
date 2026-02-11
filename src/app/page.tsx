@@ -34,7 +34,7 @@ interface Client {
 
 interface Work {
   id: string;
-  title: string;
+  title?: string | null;
   slug: string;
   type: "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL";
   description?: string | null;
@@ -300,7 +300,7 @@ export default function Home() {
                           ) : work.thumbnailUrl ? (
                             <img
                               src={getImageUrl(work.thumbnailUrl)}
-                              alt={work.title}
+                              alt={work.title || 'بدون عنوان'}
                               className="w-full h-full group-hover:scale-110 transition-transform duration-300 object-cover"
                             />
                           ) : (
@@ -318,7 +318,7 @@ export default function Home() {
                         {/* Work Info */}
                         <div className="flex-grow p-4">
                           <h3 className="font-bold text-foreground text-lg mb-2 line-clamp-2">
-                            {work.title}
+                            {work.title || 'بدون عنوان'}
                           </h3>
 
                           {/* Client/Company Name */}

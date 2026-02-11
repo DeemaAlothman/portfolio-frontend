@@ -78,7 +78,7 @@ export default function WorkDetailPage() {
           <div className="absolute inset-0">
             <img
               src={`${process.env.NEXT_PUBLIC_API_URL}${work.thumbnailUrl}`}
-              alt={work.title}
+              alt={work.title || 'بدون عنوان'}
               className="w-full h-full object-cover opacity-20"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
@@ -90,7 +90,7 @@ export default function WorkDetailPage() {
             {getWorkTypeLabel(work.type)}
           </span>
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-4">
-            {work.title}
+            {work.title || 'بدون عنوان'}
           </h1>
           {work.client && (
             <p className="text-xl text-foreground/70">
@@ -129,7 +129,7 @@ export default function WorkDetailPage() {
                   {media.fileType === "IMAGE" ? (
                     <img
                       src={`${process.env.NEXT_PUBLIC_API_URL}${media.fileUrl}`}
-                      alt={media.altText || work.title}
+                      alt={media.altText || work.title || 'بدون عنوان'}
                       className="w-full h-full object-cover"
                     />
                   ) : (
