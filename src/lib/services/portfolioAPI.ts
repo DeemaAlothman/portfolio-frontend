@@ -221,34 +221,39 @@ export const portfolioAPI = {
   },
 
   // ✅ جلب شركة/عميل محدد مع أعماله (Public)
-  async getClientBySlug(slug: string, workType?: WorkType): Promise<Client> {
-    // Since Backend doesn't support fetching by slug, we'll:
-    // 1. Fetch all companies
-    // 2. Find the one matching the slug
-    // 3. Fetch its works separately
+  async getClientBySlug(slug: string, workType?: WorkType | "ALL"): Promise<Client> {
+    // Backend now supports fetching by slug directly
+    const endpoint = `/api/companies/${encodeURIComponent(slug)}`;
+    const params = new URLSearchParams();
 
-    const allClients = await this.getClients();
-    const client = allClients.find(c => c.slug === slug);
-
-    if (!client) {
-      throw new ApiError(404, "العميل غير موجود");
+    if (workType && workType !== "ALL") {
+      params.append("workType", workType);
     }
 
-    // Fetch works for this client
-    const worksResponse = await this.getWorks({
-      clientId: client.id,
-      type: workType,
-      limit: 100 // Get all works for this client
-    });
+    const queryString = params.toString();
+    const fullUrl = queryString ? `${API_URL}${endpoint}?${queryString}` : `${API_URL}${endpoint}`;
 
-    // Ensure works is always an array
-    const works = Array.isArray(worksResponse.data) ? worksResponse.data : [];
+    const response = await fetchPublic(fullUrl);
 
-    // Return client with works
-    return {
-      ...client,
-      works: works
-    };
+    // Backend might return { company: {...} } or just the company object
+    // fetchPublic already unwraps { data: {...} } format
+    const client = response.company || response;
+
+    // Backend uses 'portfolioItems' instead of 'works'
+    // Map portfolioItems to works for consistency
+    if (client.portfolioItems && Array.isArray(client.portfolioItems)) {
+      client.works = client.portfolioItems;
+    } else if (!client.works || !Array.isArray(client.works)) {
+      // Ensure works is always an array
+      client.works = [];
+    }
+
+    // Transform logo to logoUrl for consistency
+    if (client.logo && !client.logoUrl) {
+      client.logoUrl = client.logo;
+    }
+
+    return client;
   },
 
   // ✅ جلب إحصائيات البورتفوليو (Public)

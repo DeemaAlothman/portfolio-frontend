@@ -85,7 +85,7 @@ export const clientsAPI = {
   },
 
   async getBySlug(slug: string): Promise<Client> {
-    return fetchAPI(`/api/companies/${slug}`);
+    return fetchAPI(`/api/companies/${encodeURIComponent(slug)}`);
   },
 
   async getById(id: string): Promise<Client> {

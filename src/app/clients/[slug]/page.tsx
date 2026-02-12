@@ -24,7 +24,8 @@ interface ClientWithWorks extends APIClient {
 export default function ClientDetailPage() {
   const { locale, t } = useLanguage();
   const params = useParams();
-  const slug = params.slug as string;
+  // Ensure slug is decoded (Next.js usually does this automatically, but just in case)
+  const slug = decodeURIComponent(params.slug as string);
 
   const [client, setClient] = useState<ClientWithWorks | null>(null);
   const [loading, setLoading] = useState(true);
@@ -245,22 +246,22 @@ export default function ClientDetailPage() {
                     <div className={`relative bg-gradient-to-br from-muted/30 to-muted/50 overflow-hidden flex items-center justify-center ${
                       work.type === "REEL" ? "aspect-[9/16]" : "h-64"
                     }`}>
-                      {work.type === "REEL" && work.thumbnailUrl && (work.mediaType === "VIDEO" || work.type === "REEL") ? (
+                      {work.type === "REEL" && (work.thumbnailUrl || work.mediaUrl) && work.mediaType === "VIDEO" ? (
                         // For REELs, show video player
                         <video
-                          src={getImageUrl(work.thumbnailUrl)}
+                          src={getImageUrl(work.thumbnailUrl || work.mediaUrl)}
                           controls
                           preload="metadata"
                           playsInline
                           className="w-full h-full object-cover"
                         >
-                          <source src={getImageUrl(work.thumbnailUrl)} type="video/mp4" />
+                          <source src={getImageUrl(work.thumbnailUrl || work.mediaUrl)} type="video/mp4" />
                           متصفحك لا يدعم تشغيل الفيديو
                         </video>
-                      ) : work.thumbnailUrl ? (
+                      ) : (work.thumbnailUrl || work.mediaUrl) ? (
                         <img
-                          src={getImageUrl(work.thumbnailUrl)}
-                          alt={work.title}
+                          src={getImageUrl(work.thumbnailUrl || work.mediaUrl)}
+                          alt={work.title || 'بدون عنوان'}
                           className="w-full h-full group-hover:scale-110 transition-transform duration-300 object-cover"
                         />
                       ) : (
