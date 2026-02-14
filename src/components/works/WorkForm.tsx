@@ -51,6 +51,7 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     clientName: work?.clientName || "",
     companyId: work?.companyId || "",
     websiteUrl: work?.websiteUrl || "",
+    tag: work?.tag || "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -149,9 +150,8 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     try {
       // بناء FormData للإرسال
       const uploadData = new FormData();
-      if (formData.title) {
-        uploadData.append('title', formData.title);
-      }
+      // Always send title (even if empty) so backend can set it to null
+      uploadData.append('title', formData.title || '');
       uploadData.append('type', formData.type);
       uploadData.append('category', formData.category);
 
@@ -162,6 +162,9 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
       if (formData.websiteUrl) {
         uploadData.append('websiteUrl', formData.websiteUrl);
       }
+
+      // Always send tag (even if empty) so backend can set it to null
+      uploadData.append('tag', formData.tag || '');
 
       // إضافة بيانات العميل
       if (formData.category === "INDIVIDUAL" && formData.clientName) {
@@ -394,6 +397,16 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           error={errors.title}
+        />
+
+        {/* Tag */}
+        <Input
+          label="الوسم (اختياري)"
+          type="text"
+          placeholder="مثال: موشن جرافيك، تصميم شعارات، إلخ"
+          value={formData.tag}
+          onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+          error={errors.tag}
         />
 
         {/* Website URL - يظهر فقط للمواقع الإلكترونية */}

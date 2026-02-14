@@ -42,6 +42,7 @@ interface Work {
   mediaUrl?: string | null;
   mediaType?: "IMAGE" | "VIDEO";
   websiteUrl?: string | null;
+  tag?: string | null;
   category?: "INDIVIDUAL" | "CORPORATE";
   publishDate?: string | null;
   viewCount?: number | null;
@@ -309,10 +310,12 @@ export default function Home() {
                             </span>
                           )}
 
-                          {/* Work Type Badge */}
-                          <div className="absolute top-4 right-4 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-full text-sm font-semibold text-primary shadow-soft z-10">
-                            {getWorkTypeLabel(work.type)}
-                          </div>
+                          {/* Work Type Badge - Only show if tag exists */}
+                          {work.tag && (
+                            <div className="absolute top-4 right-4 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-full text-sm font-semibold text-primary shadow-soft z-10">
+                              {work.tag}
+                            </div>
+                          )}
                         </div>
 
                         {/* Work Info */}

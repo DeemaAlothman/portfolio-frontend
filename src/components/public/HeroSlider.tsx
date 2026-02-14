@@ -83,21 +83,21 @@ const HeroSlider = () => {
           background: '#00796B'
         }}
       >
-        <div className="flex items-center h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row items-center justify-center h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-0">
           {/* Content - Slides from LEFT */}
           <div
             key={`slide-1-content-${animationKey}`}
-            className={`flex-1 pr-16 lg:pr-24 ${
+            className={`flex-1 w-full md:pr-8 lg:pr-16 text-center md:text-right mb-6 md:mb-0 ${
               currentSlide === 0 ? 'animate-slideFromLeft' : ''
             }`}
           >
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight">
               {t('home.title')}
             </h2>
-            <p className="text-xl md:text-2xl text-white mb-4 leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-white mb-3 md:mb-4 leading-relaxed">
               {t('home.subtitle')}
             </p>
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-white/90 leading-relaxed">
               {t('home.description')}
             </p>
           </div>
@@ -105,11 +105,11 @@ const HeroSlider = () => {
           {/* Image - Slides from RIGHT */}
           <div
             key={`slide-1-image-${animationKey}`}
-            className={`flex-1 flex justify-center items-center ${
+            className={`flex-1 w-full flex justify-center items-center ${
               currentSlide === 0 ? 'animate-slideFromRight' : ''
             }`}
           >
-            <div className="relative w-full max-w-lg h-[500px]">
+            <div className="relative w-full max-w-[250px] sm:max-w-[350px] md:max-w-lg h-[250px] sm:h-[350px] md:h-[500px]">
               <Image
                 src="/image.png"
                 alt="Welcome"
@@ -131,15 +131,15 @@ const HeroSlider = () => {
           background: '#E8D5C4'
         }}
       >
-        <div className="flex items-center h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col-reverse md:flex-row items-center justify-center h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-0">
           {/* Image - Slides from LEFT */}
           <div
             key={`slide-2-image-${animationKey}`}
-            className={`flex-1 flex justify-center items-center ${
+            className={`flex-1 w-full flex justify-center items-center ${
               currentSlide === 1 ? 'animate-slideFromLeft' : ''
             }`}
           >
-            <div className="relative w-full max-w-lg h-[500px]">
+            <div className="relative w-full max-w-[250px] sm:max-w-[350px] md:max-w-lg h-[250px] sm:h-[350px] md:h-[500px]">
               <Image
                 src="/image2.jpg"
                 alt="Marketing"
@@ -152,17 +152,17 @@ const HeroSlider = () => {
           {/* Content - Slides from RIGHT */}
           <div
             key={`slide-2-content-${animationKey}`}
-            className={`flex-1 pl-16 lg:pl-24 pr-12 bg-white h-full flex flex-col justify-center ${
+            className={`flex-1 w-full md:pl-8 lg:pl-16 md:pr-4 bg-white md:bg-transparent p-6 md:p-0 rounded-2xl md:rounded-none mb-6 md:mb-0 text-center md:text-right flex flex-col justify-center ${
               currentSlide === 1 ? 'animate-slideFromRight' : ''
             }`}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-[#00796B] mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#00796B] mb-4 md:mb-6">
               {t('home.marketing.title')}
             </h2>
-            <h3 className="text-3xl md:text-4xl font-bold text-[#00796B] mb-6 leading-tight">
+            <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[#00796B] mb-4 md:mb-6 leading-tight">
               {t('home.marketing.subtitle')}
             </h3>
-            <p className="text-xl md:text-2xl text-gray-700 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 leading-relaxed">
               {t('home.marketing.description')}
             </p>
           </div>
@@ -173,7 +173,7 @@ const HeroSlider = () => {
       <button
         onClick={prevSlide}
         disabled={isAnimating}
-        className="absolute top-1/2 right-8 -translate-y-1/2 w-14 h-14 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-[#00796B] text-2xl transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-20 shadow-lg"
+        className="absolute top-1/2 right-2 sm:right-4 md:right-8 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-[#00796B] text-lg sm:text-xl md:text-2xl transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-20 shadow-lg"
         aria-label="Previous slide"
       >
         ❮
@@ -181,20 +181,20 @@ const HeroSlider = () => {
       <button
         onClick={nextSlide}
         disabled={isAnimating}
-        className="absolute top-1/2 left-8 -translate-y-1/2 w-14 h-14 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-[#00796B] text-2xl transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-20 shadow-lg"
+        className="absolute top-1/2 left-2 sm:left-4 md:left-8 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-[#00796B] text-lg sm:text-xl md:text-2xl transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed z-20 shadow-lg"
         aria-label="Next slide"
       >
         ❯
       </button>
 
       {/* Navigation Dots */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 z-20">
+      <div className="absolute bottom-6 sm:bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 md:gap-4 z-20">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
             disabled={isAnimating}
-            className={`w-4 h-4 rounded-full transition-all ${
+            className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all ${
               currentSlide === index
                 ? 'bg-white scale-125'
                 : 'bg-white/50 hover:bg-white/75'

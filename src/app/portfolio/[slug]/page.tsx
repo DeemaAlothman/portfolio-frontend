@@ -60,16 +60,6 @@ export default function WorkDetailPage() {
     );
   }
 
-  const getWorkTypeLabel = (type: string) => {
-    const labels = {
-      LOGO: "شعار",
-      WEBSITE: "موقع إلكتروني",
-      SOCIAL_MEDIA: "سوشيال ميديا",
-      REEL: "ريلز",
-    };
-    return labels[type as keyof typeof labels] || type;
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section with Cover Image */}
@@ -86,9 +76,12 @@ export default function WorkDetailPage() {
         )}
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-          <span className="inline-block px-6 py-2 rounded-full bg-primary text-white text-sm font-semibold mb-4">
-            {getWorkTypeLabel(work.type)}
-          </span>
+          {/* Work Type Badge - Only show if tag exists */}
+          {work.tag && (
+            <span className="inline-block px-6 py-2 rounded-full bg-primary text-white text-sm font-semibold mb-4">
+              {work.tag}
+            </span>
+          )}
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-4">
             {work.title || 'بدون عنوان'}
           </h1>

@@ -13,6 +13,7 @@ export interface Work {
   clientName?: string; // للأفراد
   companyId?: string; // للشركات
   websiteUrl?: string; // للمواقع الإلكترونية
+  tag?: string | null; // Custom tag text (e.g., "موشن جرافيك")
   slug: string;
   createdAt: string;
   updatedAt: string;

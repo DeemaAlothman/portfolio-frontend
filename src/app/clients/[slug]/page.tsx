@@ -117,7 +117,7 @@ export default function ClientDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section - Client Header with Logo */}
-      <section className="relative bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4 sm:px-6 lg:px-8 border-b-2 border-border">
+      <section className="relative py-12 px-4 sm:px-6 lg:px-8 border-b-4 border-primary/20" style={{ background: '#00796B' }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Client Logo */}
@@ -133,10 +133,10 @@ export default function ClientDetailPage() {
 
             {/* Client Info */}
             <div className="flex-1 text-center md:text-right">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
                 {t('clientDetail.services')} {client.name}
               </h1>
-              <p className="text-lg text-foreground/60 mb-4">
+              <p className="text-lg text-white/90 mb-4">
                 {client.description || `مشروع ريفر للتطوير العقاري`}
               </p>
               {client.website && (
@@ -144,7 +144,7 @@ export default function ClientDetailPage() {
                   href={client.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-semibold"
+                  className="inline-flex items-center gap-2 text-white hover:text-white/80 transition-colors font-semibold"
                 >
                   🌐 {t('home.visitWebsite')}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,10 +270,12 @@ export default function ClientDetailPage() {
                         </span>
                       )}
 
-                      {/* Work Type Badge */}
-                      <div className="absolute top-4 right-4 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-full text-sm font-semibold text-primary shadow-soft z-10">
-                        {getWorkTypeLabel(work.type)}
-                      </div>
+                      {/* Work Type Badge - Only show if tag exists */}
+                      {work.tag && (
+                        <div className="absolute top-4 right-4 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-full text-sm font-semibold text-primary shadow-soft z-10">
+                          {work.tag}
+                        </div>
+                      )}
                     </div>
 
                     {/* Work Info */}

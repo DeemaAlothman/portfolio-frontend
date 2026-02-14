@@ -67,6 +67,7 @@ export interface Work {
   media?: Media[];
   sections?: WorkSection[];
   tags?: { tag: Tag }[];
+  tag?: string | null; // Custom tag text (e.g., "موشن جرافيك")
   metaTitle?: string | null;
   metaDescription?: string | null;
   metaKeywords?: string | null;
