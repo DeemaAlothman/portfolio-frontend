@@ -5,6 +5,7 @@ import Link from "next/link";
 import { portfolioAPI, ClientType as APIClientType, WorkType as APIWorkType } from "@/lib/services/portfolioAPI";
 import { useLanguage } from "@/contexts/LanguageContext";
 import HeroSlider from "@/components/public/HeroSlider";
+import Masonry from "react-masonry-css";
 
 type ClientType = "COMPANY" | "INDIVIDUAL" | "ALL";
 type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "ALL";
@@ -272,11 +273,14 @@ export default function Home() {
                   
                 </div>
 
-                <div className={`grid gap-8 items-start ${
-                  workTypeFilter === "REEL"
-                    ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                }`}>
+                <Masonry
+                  breakpointCols={workTypeFilter === "REEL"
+                    ? { default: 4, 1024: 3, 768: 2, 640: 2 }
+                    : { default: 3, 1024: 3, 768: 2, 640: 1 }
+                  }
+                  className="flex gap-8"
+                  columnClassName="flex flex-col gap-8"
+                >
                   {works.map((work) => {
                     const cardClassName = "group bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-hover transition-all duration-300 border-2 border-border hover:border-primary";
 
@@ -384,7 +388,7 @@ export default function Home() {
                       </div>
                     );
                   })}
-                </div>
+                </Masonry>
               </>
             )
           ) : clients.length === 0 ? (

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { portfolioAPI, WorkType, Client as APIClient, Work as APIWork } from "@/lib/services/portfolioAPI";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Masonry from "react-masonry-css";
 
 // Helper function to get full image URL
 const getImageUrl = (url?: string | null): string | undefined => {
@@ -232,11 +233,14 @@ export default function ClientDetailPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {filteredWorks.length > 0 ? (
-            <div className={`grid gap-8 items-start ${
-              workTypeFilter === "REEL"
-                ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-                : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-            }`}>
+            <Masonry
+              breakpointCols={workTypeFilter === "REEL"
+                ? { default: 4, 1024: 3, 768: 2, 640: 2 }
+                : { default: 3, 1024: 3, 768: 2, 640: 1 }
+              }
+              className="flex gap-8"
+              columnClassName="flex flex-col gap-8"
+            >
               {filteredWorks.map((work: APIWork) => {
                 const cardClassName = "group bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-hover transition-all duration-300 border-2 border-border hover:border-primary";
 
@@ -337,7 +341,7 @@ export default function ClientDetailPage() {
                   </div>
                 );
               })}
-            </div>
+            </Masonry>
           ) : (
             <div className="text-center py-20">
               <div className="text-8xl mb-6">📭</div>
