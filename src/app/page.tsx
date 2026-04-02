@@ -272,13 +272,13 @@ export default function Home() {
                   
                 </div>
 
-                <div className={`grid gap-8 ${
+                <div className={`grid gap-8 items-start ${
                   workTypeFilter === "REEL"
                     ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                     : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
                 }`}>
                   {works.map((work) => {
-                    const cardClassName = "group bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-hover transition-all duration-300 border-2 border-border hover:border-primary flex flex-col";
+                    const cardClassName = "group bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-hover transition-all duration-300 border-2 border-border hover:border-primary";
 
                     const cardContent = (
                       <>
@@ -319,7 +319,7 @@ export default function Home() {
                         </div>
 
                         {/* Work Info */}
-                        <div className="flex-grow p-4">
+                        <div className="p-4">
                           {work.title && (
                             <h3 className="font-bold text-foreground text-lg mb-2 line-clamp-2">
                               {work.title}
