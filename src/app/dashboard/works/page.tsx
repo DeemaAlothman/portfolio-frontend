@@ -198,18 +198,18 @@ function WorksContent() {
                   >
                     {/* Image/Video */}
                     {mediaUrl ? (
-                      <div className="aspect-video bg-secondary relative">
+                      <div className="bg-secondary relative">
                         {isVideo ? (
                           <video
                             src={mediaUrl}
                             controls
-                            className="w-full h-full object-cover"
+                            className="w-full h-auto"
                           />
                         ) : (
                           <img
                             src={mediaUrl}
-                            alt={work.title || 'بدون عنوان'}
-                            className="w-full h-full object-cover"
+                            alt={work.title || ''}
+                            className="w-full h-auto"
                             onError={(e) => {
                               console.error("Image load error:", mediaUrl);
                               e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ctext x='50%25' y='50%25' font-size='48' text-anchor='middle' dy='.3em'%3E🖼️%3C/text%3E%3C/svg%3E";
@@ -231,9 +231,11 @@ function WorksContent() {
                     {/* Content */}
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-primary line-clamp-1">
-                          {work.title || 'بدون عنوان'}
-                        </h3>
+                        {work.title && (
+                          <h3 className="text-lg font-semibold text-primary line-clamp-1">
+                            {work.title}
+                          </h3>
+                        )}
                         {getCategoryBadge(work.category)}
                       </div>
 

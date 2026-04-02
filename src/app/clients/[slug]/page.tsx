@@ -244,7 +244,7 @@ export default function ClientDetailPage() {
                   <>
                     {/* Work Image/Video */}
                     <div className={`relative bg-gradient-to-br from-muted/30 to-muted/50 overflow-hidden flex items-center justify-center ${
-                      work.type === "REEL" ? "aspect-[9/16]" : "h-64"
+                      work.type === "REEL" ? "aspect-[9/16]" : ""
                     }`}>
                       {work.type === "REEL" && (work.thumbnailUrl || work.mediaUrl) && work.mediaType === "VIDEO" ? (
                         // For REELs, show video player
@@ -261,8 +261,8 @@ export default function ClientDetailPage() {
                       ) : (work.thumbnailUrl || work.mediaUrl) ? (
                         <img
                           src={getImageUrl(work.thumbnailUrl || work.mediaUrl)}
-                          alt={work.title || 'بدون عنوان'}
-                          className="w-full h-full group-hover:scale-110 transition-transform duration-300 object-cover"
+                          alt={work.title || ''}
+                          className="w-full h-auto group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
                         <span className="text-6xl">
@@ -280,9 +280,11 @@ export default function ClientDetailPage() {
 
                     {/* Work Info */}
                     <div className="flex-grow p-4">
-                      <h3 className="font-bold text-foreground text-lg mb-2 line-clamp-2">
-                        {work.title}
-                      </h3>
+                      {work.title && (
+                        <h3 className="font-bold text-foreground text-lg mb-2 line-clamp-2">
+                          {work.title}
+                        </h3>
+                      )}
 
                       {/* Description */}
                       {work.description && (
