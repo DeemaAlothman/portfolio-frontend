@@ -107,7 +107,7 @@ export const ar = {
   'clients.clientType.individual': 'عميل فردي',
 
   // Client Detail Page
-  'clientDetail.services': 'خدماتنا |',
+  'clientDetail.services': 'خدماتنا',
   'clientDetail.filter.all': 'الكل',
   'clientDetail.loading': 'جاري التحميل...',
   'clientDetail.error': 'حدث خطأ أثناء تحميل الأعمال',
