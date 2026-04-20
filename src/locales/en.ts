@@ -107,7 +107,7 @@ export const en = {
   'clients.clientType.individual': 'Individual Client',
 
   // Client Detail Page
-  'clientDetail.services': 'Our Services for',
+  'clientDetail.services': 'Our Services |',
   'clientDetail.filter.all': 'All',
   'clientDetail.loading': 'Loading...',
   'clientDetail.error': 'An error occurred while loading works',
