@@ -193,7 +193,7 @@ export default function ClientDetailPage() {
                   : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
               }`}
             >
-              🎬 ريلزات ({workCounts.REEL})
+              🎬 ريلات ({workCounts.REEL})
             </button>
             <button
               onClick={() => setWorkTypeFilter("LOGO")}
