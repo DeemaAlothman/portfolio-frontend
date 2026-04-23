@@ -56,7 +56,7 @@ export default function Header() {
               className="flex items-center gap-2 hover:text-[#007F7F] transition-colors"
             >
               <Phone className="w-4 h-4" />
-              <span className="hidden sm:inline">+963 991 332 241</span>
+              <span className="hidden sm:inline" dir="ltr">+963 991 332 241</span>
             </a>
             <a
               href="mailto:info@rastaka.net"
