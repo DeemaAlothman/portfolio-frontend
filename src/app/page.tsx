@@ -146,7 +146,7 @@ export default function Home() {
       <HeroSlider />
 
       {/* Client Type Filter Tabs */}
-      <section className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b-2 border-border shadow-sm">
+      <section className="bg-background border-b-2 border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-wrap gap-4 justify-center">
             <button
@@ -185,7 +185,7 @@ export default function Home() {
 
       {/* Work Type Filter for Individuals */}
       {clientFilter === "INDIVIDUAL" && (
-        <section className="bg-muted/30 border-b-2 border-border sticky top-[88px] z-30 backdrop-blur-sm">
+        <section className="bg-muted/30 border-b-2 border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex flex-wrap gap-3 justify-center">
               <button
