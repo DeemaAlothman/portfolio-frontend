@@ -257,7 +257,7 @@ export default function ClientDetailPage() {
                           controls
                           preload="metadata"
                           playsInline
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain bg-black"
                         >
                           <source src={getImageUrl(work.thumbnailUrl || work.mediaUrl)} type="video/mp4" />
                           متصفحك لا يدعم تشغيل الفيديو
