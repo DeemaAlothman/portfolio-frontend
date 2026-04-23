@@ -313,16 +313,7 @@ export default function ClientDetailPage() {
                         </a>
                       )}
 
-                      {/* Publish Date */}
-                      {work.publishDate && (
-                        <p className="text-foreground/50 text-xs mb-1">
-                          📅 {new Date(work.publishDate).toLocaleDateString('ar-SA', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                      )}
+                      {/* Publish Date - hidden */}
 
                       {/* View Count */}
                       {work.viewCount !== undefined && work.viewCount !== null && work.viewCount > 0 && (
