@@ -59,10 +59,10 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // التحقق من الحجم الأقصى (200MB)
-      const maxSize = 200 * 1024 * 1024; // 200MB in bytes
+      // التحقق من الحجم الأقصى (500MB)
+      const maxSize = 500 * 1024 * 1024; // 500MB in bytes
       if (selectedFile.size > maxSize) {
-        setError(`حجم الملف كبير جداً! الحد الأقصى 200 ميجابايت. حجم الملف المختار: ${(selectedFile.size / 1024 / 1024).toFixed(2)} ميجابايت`);
+        setError(`حجم الملف كبير جداً! الحد الأقصى 500 ميجابايت. حجم الملف المختار: ${(selectedFile.size / 1024 / 1024).toFixed(2)} ميجابايت`);
         e.target.value = ''; // مسح الاختيار
         return;
       }
@@ -457,8 +457,8 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
             {file && !isUploading && (
               <p className="mt-2 text-sm text-foreground/60">
                 📁 الملف المختار: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                {file.size > 200 * 1024 * 1024 && (
-                  <span className="text-error font-semibold"> - الملف كبير جداً! الحد الأقصى 200MB</span>
+                {file.size > 500 * 1024 * 1024 && (
+                  <span className="text-error font-semibold"> - الملف كبير جداً! الحد الأقصى 500MB</span>
                 )}
               </p>
             )}
