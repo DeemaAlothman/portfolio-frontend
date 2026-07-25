@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Button from "@/components/auth/Button";
 import { worksAPI, Work, WorkType, CategoryType } from "@/lib/services/worksAPI";
+import { clientsAPI, Client } from "@/lib/services/clientsAPI";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Link from "next/link";
 
@@ -11,9 +12,13 @@ function WorksContent() {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [companies, setCompanies] = useState<Client[]>([]);
+  const [individualNames, setIndividualNames] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     type: "" as WorkType | "",
     category: "" as CategoryType | "",
+    // قيمة الفلتر الموحّد: "company:<id>" للشركات أو "individual:<name>" للأفراد
+    client: "" as string,
   });
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; work: Work | null }>({
     isOpen: false,
@@ -24,13 +29,48 @@ function WorksContent() {
     loadWorks();
   }, [filters]);
 
+  useEffect(() => {
+    loadClientOptions();
+  }, []);
+
+  // تحميل قوائم الشركات وأسماء الأفراد لملء قائمة فلتر "العميل"
+  const loadClientOptions = async () => {
+    try {
+      const [companiesData, allWorks] = await Promise.all([
+        clientsAPI.getAll(),
+        worksAPI.getAll(),
+      ]);
+
+      setCompanies(Array.isArray(companiesData) ? companiesData : []);
+
+      const names = Array.from(
+        new Set(
+          (Array.isArray(allWorks) ? allWorks : [])
+            .filter((w) => w.category === "INDIVIDUAL" && w.clientName)
+            .map((w) => w.clientName as string)
+        )
+      ).sort((a, b) => a.localeCompare(b, "ar"));
+
+      setIndividualNames(names);
+    } catch {
+      // فشل تحميل قوائم الفلتر لا يجب أن يمنع عرض الأعمال نفسها
+    }
+  };
+
   const loadWorks = async () => {
     try {
       setLoading(true);
       setError("");
+
+      const separatorIndex = filters.client.indexOf(":");
+      const clientKind = separatorIndex === -1 ? "" : filters.client.slice(0, separatorIndex);
+      const clientValue = separatorIndex === -1 ? "" : filters.client.slice(separatorIndex + 1);
+
       const data = await worksAPI.getAll({
         ...(filters.type && { type: filters.type as WorkType }),
         ...(filters.category && { category: filters.category as CategoryType }),
+        ...(clientKind === "company" && { companyId: clientValue }),
+        ...(clientKind === "individual" && { clientName: clientValue }),
       });
       // تحقق إذا البيانات array
       setWorks(Array.isArray(data) ? data : []);
@@ -116,7 +156,7 @@ function WorksContent() {
 
         {/* Filters */}
         <div className="mb-6 p-4 bg-white rounded-lg border-2 border-border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 نوع العمل
@@ -149,9 +189,40 @@ function WorksContent() {
               </select>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                العميل
+              </label>
+              <select
+                value={filters.client}
+                onChange={(e) => setFilters({ ...filters, client: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none"
+              >
+                <option value="">الكل</option>
+                {companies.length > 0 && (
+                  <optgroup label="شركات">
+                    {companies.map((c) => (
+                      <option key={c.id} value={`company:${c.id}`}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {individualNames.length > 0 && (
+                  <optgroup label="أفراد">
+                    {individualNames.map((name) => (
+                      <option key={name} value={`individual:${name}`}>
+                        {name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+            </div>
+
             <div className="flex items-end">
               <button
-                onClick={() => setFilters({ type: "", category: "" })}
+                onClick={() => setFilters({ type: "", category: "", client: "" })}
                 className="w-full px-4 py-2 rounded-lg border-2 border-border text-foreground hover:bg-accent transition-colors"
               >
                 إعادة تعيين

@@ -44,6 +44,7 @@ export interface WorksFilters {
   type?: WorkType;
   category?: CategoryType;
   companyId?: string;
+  clientName?: string;
 }
 
 export interface CreateWorkData {
@@ -105,6 +106,7 @@ export const worksAPI = {
     if (filters?.type) params.append("type", filters.type);
     if (filters?.category) params.append("category", filters.category);
     if (filters?.companyId) params.append("companyId", filters.companyId);
+    if (filters?.clientName) params.append("clientName", filters.clientName);
 
     const queryString = params.toString();
     const endpoint = queryString ? `/api/portfolio?${queryString}` : "/api/portfolio";
