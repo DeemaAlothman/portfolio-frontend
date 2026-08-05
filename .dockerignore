@@ -1,6 +1,8 @@
 Dockerfile
 .dockerignore
 node_modules
+# مجلد الباك إند (ومجلد uploads الضخم فيه) متداخل جوا مجلد الفرونت إند على السيرفر - استثنائه هون يمنع تضخم سياق البناء
+rastaka-portfolio-frontend
 npm-debug.log
 README.md
 .next
