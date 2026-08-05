@@ -223,7 +223,11 @@ export const portfolioAPI = {
   },
 
   // ✅ جلب شركة/عميل محدد مع أعماله (Public)
-  async getClientBySlug(slug: string, workType?: WorkType | "ALL"): Promise<Client> {
+  async getClientBySlug(
+    slug: string,
+    workType?: WorkType | "ALL",
+    pagination?: { limit?: number; offset?: number }
+  ): Promise<Client> {
     // Backend now supports fetching by slug directly
     const endpoint = `/api/companies/${encodeURIComponent(slug)}`;
     const params = new URLSearchParams();
@@ -231,6 +235,8 @@ export const portfolioAPI = {
     if (workType && workType !== "ALL") {
       params.append("workType", workType);
     }
+    if (pagination?.limit) params.append("limit", String(pagination.limit));
+    if (pagination?.offset) params.append("offset", String(pagination.offset));
 
     const queryString = params.toString();
     const fullUrl = queryString ? `${API_URL}${endpoint}?${queryString}` : `${API_URL}${endpoint}`;
@@ -249,6 +255,11 @@ export const portfolioAPI = {
       // Ensure works is always an array
       client.works = [];
     }
+
+    // إجمالي عدد أعمال الشركة (للتحميل التدريجي)
+    client._count = {
+      works: typeof client.portfolioItemsCount === "number" ? client.portfolioItemsCount : client.works.length,
+    };
 
     // Transform logo to logoUrl for consistency
     if (client.logo && !client.logoUrl) {

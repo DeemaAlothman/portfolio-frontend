@@ -23,6 +23,8 @@ interface ClientWithWorks extends APIClient {
   works: APIWork[];
 }
 
+const CLIENT_WORKS_PAGE_SIZE = 24;
+
 export default function ClientDetailPage() {
   const { locale, t } = useLanguage();
   const params = useParams();
@@ -31,6 +33,7 @@ export default function ClientDetailPage() {
 
   const [client, setClient] = useState<ClientWithWorks | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [workTypeFilter, setWorkTypeFilter] = useState<WorkType | "ALL">("ALL");
 
@@ -41,7 +44,10 @@ export default function ClientDetailPage() {
   const loadClient = async () => {
     try {
       setLoading(true);
-      const data = await portfolioAPI.getClientBySlug(slug);
+      const data = await portfolioAPI.getClientBySlug(slug, undefined, {
+        limit: CLIENT_WORKS_PAGE_SIZE,
+        offset: 0,
+      });
       setClient(data as ClientWithWorks);
     } catch (err: any) {
       setError(err.message || t('clientDetail.error'));
@@ -49,6 +55,26 @@ export default function ClientDetailPage() {
       setLoading(false);
     }
   };
+
+  const loadMoreClientWorks = async () => {
+    if (!client) return;
+    try {
+      setLoadingMore(true);
+      const data = await portfolioAPI.getClientBySlug(slug, undefined, {
+        limit: CLIENT_WORKS_PAGE_SIZE,
+        offset: client.works.length,
+      });
+      setClient((prev) =>
+        prev ? { ...prev, works: [...prev.works, ...(data as ClientWithWorks).works], _count: data._count } : prev
+      );
+    } catch (err) {
+      console.error("Failed to load more works:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const hasMoreClientWorks = !!client && client.works.length < (client._count?.works ?? client.works.length);
 
   const getWorkTypeLabel = (type: string) => {
     const labels: Record<string, keyof typeof import('@/locales/ar').ar> = {
@@ -234,6 +260,7 @@ export default function ClientDetailPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {filteredWorks.length > 0 ? (
+            <>
             <Masonry
               breakpointCols={workTypeFilter === "REEL"
                 ? { default: 4, 1024: 3, 768: 2, 640: 2 }
@@ -342,6 +369,19 @@ export default function ClientDetailPage() {
                 );
               })}
             </Masonry>
+
+            {workTypeFilter === "ALL" && hasMoreClientWorks && (
+              <div className="flex justify-center mt-10">
+                <button
+                  onClick={loadMoreClientWorks}
+                  disabled={loadingMore}
+                  className="px-8 py-3 rounded-full bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMore ? "جاري التحميل..." : "تحميل المزيد"}
+                </button>
+              </div>
+            )}
+            </>
           ) : (
             <div className="text-center py-20">
               <div className="text-8xl mb-6">📭</div>
