@@ -17,9 +17,11 @@ export interface Work {
   slug: string;
   createdAt: string;
   updatedAt: string;
-  // الباك إند الآن يرجع URL واحد لكل سجل (كل ملف = سجل منفصل)
+  // الباك إند يرجع mediaUrl واحد دائماً (يُستخدم كصورة غلاف حتى بوضع الكاروسيل)
   mediaUrl?: string;
   mediaType?: string; // IMAGE أو VIDEO
+  // وضع الكاروسيل: أكتر من صورة/فيديو بنفس العمل (array بعد التحويل من الباك إند)
+  mediaUrls?: string[] | null;
   company?: {
     id: string;
     name: string;
@@ -57,6 +59,8 @@ export interface CreateWorkData {
   websiteUrl?: string; // مطلوب للمواقع الإلكترونية
   file?: File; // ملف واحد (للموقع فقط)
   files?: File[]; // ملفات متعددة (للشعار، الريلز، السوشال ميديا)
+  // عند رفع أكتر من ملف: "single" = كل ملف عمل منفصل (افتراضي) | "carousel" = كل الملفات بعمل واحد
+  displayMode?: "single" | "carousel";
 }
 
 class ApiError extends Error {
@@ -172,6 +176,10 @@ export const worksAPI = {
       });
     }
 
+    if (data.displayMode) {
+      formData.append("displayMode", data.displayMode);
+    }
+
     return fetchAPI("/api/portfolio", {
       method: "POST",
       body: formData,
@@ -199,6 +207,10 @@ export const worksAPI = {
       data.files.forEach((file) => {
         formData.append("media", file);
       });
+    }
+
+    if (data.displayMode) {
+      formData.append("displayMode", data.displayMode);
     }
 
     return fetchAPI(`/api/portfolio/${id}`, {

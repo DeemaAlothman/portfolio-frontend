@@ -6,6 +6,7 @@ import Link from "next/link";
 import { portfolioAPI, WorkType, Client as APIClient, Work as APIWork } from "@/lib/services/portfolioAPI";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Masonry from "react-masonry-css";
+import Carousel from "@/components/ui/Carousel";
 
 // Helper function to get full image URL
 const getImageUrl = (url?: string | null): string | undefined => {
@@ -250,7 +251,15 @@ export default function ClientDetailPage() {
                     <div className={`relative bg-gradient-to-br from-muted/30 to-muted/50 overflow-hidden flex items-center justify-center ${
                       work.type === "REEL" ? "aspect-[9/16]" : ""
                     }`}>
-                      {work.type === "REEL" && (work.thumbnailUrl || work.mediaUrl) && work.mediaType === "VIDEO" ? (
+                      {work.mediaUrls && work.mediaUrls.length > 1 ? (
+                        <Carousel
+                          items={work.mediaUrls.map((url) => ({
+                            url: getImageUrl(url) || url,
+                            type: work.mediaType === "VIDEO" ? "VIDEO" : "IMAGE",
+                          }))}
+                          alt={work.title || ""}
+                        />
+                      ) : work.type === "REEL" && (work.thumbnailUrl || work.mediaUrl) && work.mediaType === "VIDEO" ? (
                         // For REELs, show video player
                         <video
                           src={getImageUrl(work.thumbnailUrl || work.mediaUrl)}

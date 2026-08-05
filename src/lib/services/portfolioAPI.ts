@@ -56,8 +56,9 @@ export interface Work {
   type: WorkType;
   status?: WorkStatus;
   thumbnailUrl?: string | null;
-  mediaUrl?: string | null; // كل سجل عنده URL واحد (كل ملف = سجل منفصل)
+  mediaUrl?: string | null; // صورة/فيديو الغلاف
   mediaType?: "IMAGE" | "VIDEO";
+  mediaUrls?: string[] | null; // وضع الكاروسيل: أكتر من صورة/فيديو لنفس العمل
   publishDate?: string | null;
   isFeatured?: boolean;
   viewCount?: number;

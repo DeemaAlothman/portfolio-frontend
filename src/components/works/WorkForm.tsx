@@ -21,6 +21,8 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
   const [files, setFiles] = useState<File[]>([]); // للصور المتعددة (سوشال ميديا)
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  // طريقة عرض الأعمال متعددة الملفات: منفرد (كل ملف عمل مستقل) أو كاروسيل (كل الملفات بعمل واحد)
+  const [displayMode, setDisplayMode] = useState<"single" | "carousel">("single");
 
   // الباك إند يرجع URL واحد لكل سجل
   const [previewUrl, setPreviewUrl] = useState<string>(work?.mediaUrl || "");
@@ -181,10 +183,15 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
         // إنشاء موقع: ملف واحد
         uploadData.append('media', file);
       } else if (files.length > 0) {
-        // إنشاء LOGO/REEL/SOCIAL_MEDIA: ملفات متعددة (كل ملف = سجل منفصل)
+        // إنشاء LOGO/REEL/SOCIAL_MEDIA: ملفات متعددة
         files.forEach((f) => {
           uploadData.append('media', f);
         });
+
+        // وضع العرض: منفرد (افتراضي، كل ملف = سجل مستقل) أو كاروسيل (كل الملفات بعمل واحد)
+        if (files.length > 1) {
+          uploadData.append('displayMode', displayMode);
+        }
       }
 
       const token = localStorage.getItem('token');
@@ -499,6 +506,44 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
             {errors.files && (
               <p className="mt-2 text-sm text-error">{errors.files}</p>
             )}
+
+            {/* طريقة العرض - تظهر فقط عند اختيار أكتر من ملف */}
+            {files.length > 1 && (
+              <div className="mt-4 p-4 rounded-lg bg-secondary/30 border-2 border-border">
+                <p className="text-sm font-medium text-foreground mb-3">
+                  طريقة عرض الملفات ({files.length} ملفات مختارة)
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <label className={`flex-1 flex items-start gap-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${displayMode === "single" ? "border-primary bg-primary/5" : "border-border"}`}>
+                    <input
+                      type="radio"
+                      name="displayMode"
+                      checked={displayMode === "single"}
+                      onChange={() => setDisplayMode("single")}
+                      className="mt-1"
+                    />
+                    <span className="text-sm text-foreground">
+                      <span className="font-semibold block">منفرد</span>
+                      كل ملف بيصير عمل مستقل ببطاقة لحاله ({files.length} أعمال)
+                    </span>
+                  </label>
+                  <label className={`flex-1 flex items-start gap-2 p-3 rounded-lg border-2 cursor-pointer transition-colors ${displayMode === "carousel" ? "border-primary bg-primary/5" : "border-border"}`}>
+                    <input
+                      type="radio"
+                      name="displayMode"
+                      checked={displayMode === "carousel"}
+                      onChange={() => setDisplayMode("carousel")}
+                      className="mt-1"
+                    />
+                    <span className="text-sm text-foreground">
+                      <span className="font-semibold block">كاروسيل</span>
+                      كل الملفات بتتجمع بعمل واحد وبتظهر مع بعض ببطاقة وحدة (عمل واحد)
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
             {previewUrls.length > 0 && (
               <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                 {previewUrls.map((url, index) => (

@@ -6,6 +6,7 @@ import Button from "@/components/auth/Button";
 import { worksAPI, Work, WorkType, CategoryType } from "@/lib/services/worksAPI";
 import { clientsAPI, Client } from "@/lib/services/clientsAPI";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import Carousel from "@/components/ui/Carousel";
 import Link from "next/link";
 
 function WorksContent() {
@@ -256,7 +257,7 @@ function WorksContent() {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                 {works.map((work) => {
                   // كل سجل الآن عنده mediaUrl واحد (الباك اند ينشئ سجل منفصل لكل ملف)
                   const isVideo = work.type === "REEL";
@@ -268,7 +269,14 @@ function WorksContent() {
                     className="bg-white rounded-lg border-2 border-border hover:shadow-lg transition-all overflow-hidden"
                   >
                     {/* Image/Video */}
-                    {mediaUrl ? (
+                    {work.mediaUrls && work.mediaUrls.length > 1 ? (
+                      <div className="bg-secondary relative">
+                        <Carousel
+                          items={work.mediaUrls.map((url) => ({ url, type: isVideo ? "VIDEO" : "IMAGE" }))}
+                          alt={work.title || ''}
+                        />
+                      </div>
+                    ) : mediaUrl ? (
                       <div className="bg-secondary relative">
                         {isVideo ? (
                           <video

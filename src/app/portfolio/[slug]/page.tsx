@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { portfolioAPI, Work } from "@/lib/services/portfolioAPI";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Carousel from "@/components/ui/Carousel";
 
 export default function WorkDetailPage() {
   const { locale, t } = useLanguage();
@@ -95,6 +96,37 @@ export default function WorkDetailPage() {
 
       {/* Work Content */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Main Media - كل الصور مع بعض بحجمها الطبيعي لو عندها أكتر من ملف، وإلا صورة/فيديو مفرد */}
+        {work.mediaUrls && work.mediaUrls.length > 1 ? (
+          <div className="mb-12 rounded-2xl overflow-hidden bg-muted/30">
+            <Carousel
+              items={work.mediaUrls.map((url) => ({
+                url,
+                type: work.mediaType === "VIDEO" ? "VIDEO" : "IMAGE",
+              }))}
+              alt={work.title || "بدون عنوان"}
+            />
+          </div>
+        ) : work.mediaUrl ? (
+          <div className="mb-12 rounded-2xl overflow-hidden bg-muted/30">
+            {work.mediaType === "VIDEO" ? (
+              <video
+                src={work.mediaUrl}
+                controls
+                preload="metadata"
+                playsInline
+                className="w-full h-auto block"
+              />
+            ) : (
+              <img
+                src={work.mediaUrl}
+                alt={work.title || "بدون عنوان"}
+                className="w-full h-auto block"
+              />
+            )}
+          </div>
+        ) : null}
+
         {/* Description */}
         {work.description && (
           <div className="mb-12">

@@ -6,6 +6,7 @@ import { portfolioAPI, ClientType as APIClientType, WorkType as APIWorkType } fr
 import { useLanguage } from "@/contexts/LanguageContext";
 import HeroSlider from "@/components/public/HeroSlider";
 import Masonry from "react-masonry-css";
+import Carousel from "@/components/ui/Carousel";
 
 type ClientType = "COMPANY" | "INDIVIDUAL" | "ALL";
 type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "ALL";
@@ -42,6 +43,7 @@ interface Work {
   thumbnailUrl?: string | null;
   mediaUrl?: string | null;
   mediaType?: "IMAGE" | "VIDEO";
+  mediaUrls?: string[] | null;
   websiteUrl?: string | null;
   tag?: string | null;
   category?: "INDIVIDUAL" | "CORPORATE";
@@ -290,7 +292,15 @@ export default function Home() {
                         <div className={`relative bg-gradient-to-br from-muted/30 to-muted/50 overflow-hidden flex items-center justify-center ${
                           work.type === "REEL" ? "aspect-[9/16]" : ""
                         }`}>
-                          {work.type === "REEL" && work.thumbnailUrl && (work.mediaType === "VIDEO" || work.type === "REEL") ? (
+                          {work.mediaUrls && work.mediaUrls.length > 1 ? (
+                            <Carousel
+                              items={work.mediaUrls.map((url) => ({
+                                url: getImageUrl(url) || url,
+                                type: work.mediaType === "VIDEO" ? "VIDEO" : "IMAGE",
+                              }))}
+                              alt={work.title || ""}
+                            />
+                          ) : work.type === "REEL" && work.thumbnailUrl && (work.mediaType === "VIDEO" || work.type === "REEL") ? (
                             // For REELs, show video player
                             <video
                               src={getImageUrl(work.thumbnailUrl)}
