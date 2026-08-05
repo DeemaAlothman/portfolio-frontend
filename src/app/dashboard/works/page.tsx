@@ -9,8 +9,12 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import Carousel from "@/components/ui/Carousel";
 import Link from "next/link";
 
+const PAGE_SIZE = 12;
+
 function WorksContent() {
   const [works, setWorks] = useState<Work[]>([]);
+  const [totalWorks, setTotalWorks] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [companies, setCompanies] = useState<Client[]>([]);
@@ -28,6 +32,11 @@ function WorksContent() {
 
   useEffect(() => {
     loadWorks();
+  }, [filters, page]);
+
+  // أي تغيير بالفلاتر بيرجعنا لأول صفحة
+  useEffect(() => {
+    setPage(1);
   }, [filters]);
 
   useEffect(() => {
@@ -37,7 +46,7 @@ function WorksContent() {
   // تحميل قوائم الشركات وأسماء الأفراد لملء قائمة فلتر "العميل"
   const loadClientOptions = async () => {
     try {
-      const [companiesData, allWorks] = await Promise.all([
+      const [companiesData, allWorksPage] = await Promise.all([
         clientsAPI.getAll(),
         worksAPI.getAll(),
       ]);
@@ -46,7 +55,7 @@ function WorksContent() {
 
       const names = Array.from(
         new Set(
-          (Array.isArray(allWorks) ? allWorks : [])
+          allWorksPage.items
             .filter((w) => w.category === "INDIVIDUAL" && w.clientName)
             .map((w) => w.clientName as string)
         )
@@ -67,21 +76,26 @@ function WorksContent() {
       const clientKind = separatorIndex === -1 ? "" : filters.client.slice(0, separatorIndex);
       const clientValue = separatorIndex === -1 ? "" : filters.client.slice(separatorIndex + 1);
 
-      const data = await worksAPI.getAll({
+      const { items, total } = await worksAPI.getAll({
         ...(filters.type && { type: filters.type as WorkType }),
         ...(filters.category && { category: filters.category as CategoryType }),
         ...(clientKind === "company" && { companyId: clientValue }),
         ...(clientKind === "individual" && { clientName: clientValue }),
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
       });
-      // تحقق إذا البيانات array
-      setWorks(Array.isArray(data) ? data : []);
+      setWorks(items);
+      setTotalWorks(total);
     } catch (err: any) {
       setError(err.message || "فشل تحميل الأعمال");
       setWorks([]);
+      setTotalWorks(0);
     } finally {
       setLoading(false);
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(totalWorks / PAGE_SIZE));
 
   const handleDeleteClick = (work: Work) => {
     setDeleteModal({ isOpen: true, work });
@@ -370,6 +384,29 @@ function WorksContent() {
                   </div>
                 );
                 })}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalWorks > 0 && (
+              <div className="flex items-center justify-center gap-4 mt-8">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 rounded-lg border-2 border-border text-foreground hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  السابق
+                </button>
+                <span className="text-sm text-foreground/70">
+                  صفحة {page} من {totalPages} ({totalWorks} عمل)
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 rounded-lg border-2 border-border text-foreground hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  التالي
+                </button>
               </div>
             )}
           </>

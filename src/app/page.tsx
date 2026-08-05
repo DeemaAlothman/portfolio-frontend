@@ -66,11 +66,15 @@ interface Work {
   }>;
 }
 
+const WORKS_PAGE_SIZE = 24;
+
 export default function Home() {
   const { locale, t } = useLanguage();
   const [clients, setClients] = useState<Client[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMoreWorks, setHasMoreWorks] = useState(false);
   const [clientFilter, setClientFilter] = useState<ClientType>("ALL");
   const [workTypeFilter, setWorkTypeFilter] = useState<WorkType>("ALL");
 
@@ -103,7 +107,9 @@ export default function Home() {
     try {
       setLoading(true);
       const filters: any = {
-        clientType: "INDIVIDUAL"
+        clientType: "INDIVIDUAL",
+        limit: WORKS_PAGE_SIZE,
+        offset: 0,
       };
 
       if (workTypeFilter !== "ALL") {
@@ -111,14 +117,40 @@ export default function Home() {
       }
 
       const response = await portfolioAPI.getWorks(filters);
-      // التأكد من أن response.data هو array
-      setWorks(Array.isArray(response.data) ? response.data : []);
+      const items = Array.isArray(response.data) ? response.data : [];
+      setWorks(items);
+      setHasMoreWorks(response.pagination.hasMore);
       setClients([]);
     } catch (err) {
       console.error("Failed to load works:", err);
       setWorks([]); // إذا فشل التحميل، تعيين array فارغ
+      setHasMoreWorks(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreWorks = async () => {
+    try {
+      setLoadingMore(true);
+      const filters: any = {
+        clientType: "INDIVIDUAL",
+        limit: WORKS_PAGE_SIZE,
+        offset: works.length,
+      };
+
+      if (workTypeFilter !== "ALL") {
+        filters.type = workTypeFilter as APIWorkType;
+      }
+
+      const response = await portfolioAPI.getWorks(filters);
+      const items = Array.isArray(response.data) ? response.data : [];
+      setWorks((prev) => [...prev, ...items]);
+      setHasMoreWorks(response.pagination.hasMore);
+    } catch (err) {
+      console.error("Failed to load more works:", err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -390,6 +422,18 @@ export default function Home() {
                     );
                   })}
                 </Masonry>
+
+                {hasMoreWorks && (
+                  <div className="flex justify-center mt-10">
+                    <button
+                      onClick={loadMoreWorks}
+                      disabled={loadingMore}
+                      className="px-8 py-3 rounded-full bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingMore ? "جاري التحميل..." : "تحميل المزيد"}
+                    </button>
+                  </div>
+                )}
               </>
             )
           ) : clients.length === 0 ? (

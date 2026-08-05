@@ -47,6 +47,13 @@ export interface WorksFilters {
   category?: CategoryType;
   companyId?: string;
   clientName?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface WorksPage {
+  items: Work[];
+  total: number;
 }
 
 export interface CreateWorkData {
@@ -104,13 +111,15 @@ async function fetchAPI(
 }
 
 export const worksAPI = {
-  async getAll(filters?: WorksFilters): Promise<Work[]> {
+  async getAll(filters?: WorksFilters): Promise<WorksPage> {
     const params = new URLSearchParams();
 
     if (filters?.type) params.append("type", filters.type);
     if (filters?.category) params.append("category", filters.category);
     if (filters?.companyId) params.append("companyId", filters.companyId);
     if (filters?.clientName) params.append("clientName", filters.clientName);
+    if (filters?.limit) params.append("limit", String(filters.limit));
+    if (filters?.offset) params.append("offset", String(filters.offset));
 
     const queryString = params.toString();
     const endpoint = queryString ? `/api/portfolio?${queryString}` : "/api/portfolio";
@@ -119,14 +128,17 @@ export const worksAPI = {
 
     // إذا الباك راجع object فيه portfolioItems
     let items = response?.portfolioItems || (Array.isArray(response) ? response : []);
+    const total = typeof response?.count === "number" ? response.count : items.length;
 
     // التأكد من وجود mediaUrl لكل سجل (fallback من مصادر مختلفة)
-    return items.map((item: any) => ({
+    items = items.map((item: any) => ({
       ...item,
       mediaUrl: item.mediaUrl
         || (item.mediaUrls && item.mediaUrls.length > 0 ? item.mediaUrls[0] : undefined)
         || (item.media && item.media.length > 0 ? item.media[0].fileUrl : undefined),
     }));
+
+    return { items, total };
   },
 
   async getBySlug(slug: string): Promise<Work> {
