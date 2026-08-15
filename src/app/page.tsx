@@ -194,17 +194,62 @@ export default function Home() {
               {t('home.filter.all')}
             </button>
             <button
-              onClick={() => setClientFilter("INDIVIDUAL")}
+              onClick={() => {
+                setClientFilter("INDIVIDUAL");
+                setWorkTypeFilter("REEL");
+              }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
-                clientFilter === "INDIVIDUAL"
+                clientFilter === "INDIVIDUAL" && workTypeFilter === "REEL"
                   ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
             >
-              👤 {t('home.filter.individual')}
+              🎬 {t('home.workTypeButton.reel')}
             </button>
             <button
-              onClick={() => setClientFilter("COMPANY")}
+              onClick={() => {
+                setClientFilter("INDIVIDUAL");
+                setWorkTypeFilter("LOGO");
+              }}
+              className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
+                clientFilter === "INDIVIDUAL" && workTypeFilter === "LOGO"
+                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
+                  : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              🎨 {t('home.workTypeButton.logo')}
+            </button>
+            <button
+              onClick={() => {
+                setClientFilter("INDIVIDUAL");
+                setWorkTypeFilter("SOCIAL_MEDIA");
+              }}
+              className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
+                clientFilter === "INDIVIDUAL" && workTypeFilter === "SOCIAL_MEDIA"
+                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
+                  : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              📱 {t('home.workTypeButton.socialMedia')}
+            </button>
+            <button
+              onClick={() => {
+                setClientFilter("INDIVIDUAL");
+                setWorkTypeFilter("WEBSITE");
+              }}
+              className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
+                clientFilter === "INDIVIDUAL" && workTypeFilter === "WEBSITE"
+                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
+                  : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              💻 {t('home.workTypeButton.website')}
+            </button>
+            <button
+              onClick={() => {
+                setClientFilter("COMPANY");
+                setWorkTypeFilter("ALL");
+              }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
                 clientFilter === "COMPANY"
                   ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
@@ -216,66 +261,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Work Type Filter for Individuals */}
-      {clientFilter === "INDIVIDUAL" && (
-        <section className="bg-muted/30 border-b-2 border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex flex-wrap gap-3 justify-center">
-              <button
-                onClick={() => setWorkTypeFilter("ALL")}
-                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
-                  workTypeFilter === "ALL"
-                    ? "bg-primary text-white shadow-soft"
-                    : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
-                }`}
-              >
-                {t('home.filter.all')}
-              </button>
-              <button
-                onClick={() => setWorkTypeFilter("REEL")}
-                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
-                  workTypeFilter === "REEL"
-                    ? "bg-primary text-white shadow-soft"
-                    : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
-                }`}
-              >
-                🎬 {t('home.workTypeButton.reel')}
-              </button>
-              <button
-                onClick={() => setWorkTypeFilter("LOGO")}
-                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
-                  workTypeFilter === "LOGO"
-                    ? "bg-primary text-white shadow-soft"
-                    : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
-                }`}
-              >
-                🎨 {t('home.workTypeButton.logo')}
-              </button>
-              <button
-                onClick={() => setWorkTypeFilter("SOCIAL_MEDIA")}
-                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
-                  workTypeFilter === "SOCIAL_MEDIA"
-                    ? "bg-primary text-white shadow-soft"
-                    : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
-                }`}
-              >
-                📱 {t('home.workTypeButton.socialMedia')}
-              </button>
-              <button
-                onClick={() => setWorkTypeFilter("WEBSITE")}
-                className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
-                  workTypeFilter === "WEBSITE"
-                    ? "bg-primary text-white shadow-soft"
-                    : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
-                }`}
-              >
-                💻 {t('home.workTypeButton.website')}
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Clients Grid or Works Grid */}
       <section className="px-4 sm:px-6 lg:px-8 py-16">
