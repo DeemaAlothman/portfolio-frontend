@@ -79,8 +79,8 @@ export default function Home() {
   const [workTypeFilter, setWorkTypeFilter] = useState<WorkType>("ALL");
 
   useEffect(() => {
-    if (clientFilter === "INDIVIDUAL") {
-      loadIndividualWorks();
+    if (workTypeFilter !== "ALL") {
+      loadWorksByType();
     } else {
       loadClients();
     }
@@ -103,11 +103,10 @@ export default function Home() {
     }
   };
 
-  const loadIndividualWorks = async () => {
+  const loadWorksByType = async () => {
     try {
       setLoading(true);
       const filters: any = {
-        clientType: "INDIVIDUAL",
         limit: WORKS_PAGE_SIZE,
         offset: 0,
       };
@@ -134,7 +133,6 @@ export default function Home() {
     try {
       setLoadingMore(true);
       const filters: any = {
-        clientType: "INDIVIDUAL",
         limit: WORKS_PAGE_SIZE,
         offset: works.length,
       };
@@ -184,9 +182,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-wrap gap-4 justify-center">
             <button
-              onClick={() => setClientFilter("ALL")}
+              onClick={() => {
+                setClientFilter("ALL");
+                setWorkTypeFilter("ALL");
+              }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
-                clientFilter === "ALL"
+                clientFilter === "ALL" && workTypeFilter === "ALL"
                   ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
@@ -195,11 +196,11 @@ export default function Home() {
             </button>
             <button
               onClick={() => {
-                setClientFilter("INDIVIDUAL");
+                setClientFilter("ALL");
                 setWorkTypeFilter("REEL");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
-                clientFilter === "INDIVIDUAL" && workTypeFilter === "REEL"
+                workTypeFilter === "REEL"
                   ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
@@ -208,11 +209,11 @@ export default function Home() {
             </button>
             <button
               onClick={() => {
-                setClientFilter("INDIVIDUAL");
+                setClientFilter("ALL");
                 setWorkTypeFilter("LOGO");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
-                clientFilter === "INDIVIDUAL" && workTypeFilter === "LOGO"
+                workTypeFilter === "LOGO"
                   ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
@@ -221,11 +222,11 @@ export default function Home() {
             </button>
             <button
               onClick={() => {
-                setClientFilter("INDIVIDUAL");
+                setClientFilter("ALL");
                 setWorkTypeFilter("SOCIAL_MEDIA");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
-                clientFilter === "INDIVIDUAL" && workTypeFilter === "SOCIAL_MEDIA"
+                workTypeFilter === "SOCIAL_MEDIA"
                   ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
@@ -234,11 +235,11 @@ export default function Home() {
             </button>
             <button
               onClick={() => {
-                setClientFilter("INDIVIDUAL");
+                setClientFilter("ALL");
                 setWorkTypeFilter("WEBSITE");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
-                clientFilter === "INDIVIDUAL" && workTypeFilter === "WEBSITE"
+                workTypeFilter === "WEBSITE"
                   ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
                   : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
               }`}
@@ -274,8 +275,8 @@ export default function Home() {
                 </p>
               </div>
             </div>
-          ) : clientFilter === "INDIVIDUAL" ? (
-            // Show Individual Works Grid
+          ) : workTypeFilter !== "ALL" ? (
+            // Show Works Grid (all clients, filtered by work type only)
             works.length === 0 ? (
               <div className="text-center py-20">
                 <div className="text-8xl mb-6">📭</div>
