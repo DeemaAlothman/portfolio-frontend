@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import HeroSlider from "@/components/public/HeroSlider";
 import Masonry from "react-masonry-css";
 import Carousel from "@/components/ui/Carousel";
+import { pauseOtherVideos } from "@/lib/pauseOtherVideos";
 
 type ClientType = "COMPANY" | "INDIVIDUAL" | "ALL";
 type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "ALL";
@@ -325,6 +326,7 @@ export default function Home() {
                               controls
                               preload="metadata"
                               playsInline
+                              onPlay={(e) => pauseOtherVideos(e.currentTarget)}
                               className="w-full h-full object-contain bg-black"
                             >
                               <source src={getImageUrl(work.thumbnailUrl)} type="video/mp4" />

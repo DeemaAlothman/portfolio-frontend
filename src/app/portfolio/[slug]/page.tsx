@@ -6,6 +6,7 @@ import Link from "next/link";
 import { portfolioAPI, Work } from "@/lib/services/portfolioAPI";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Carousel from "@/components/ui/Carousel";
+import { pauseOtherVideos } from "@/lib/pauseOtherVideos";
 
 export default function WorkDetailPage() {
   const { locale, t } = useLanguage();
@@ -115,6 +116,7 @@ export default function WorkDetailPage() {
                 controls
                 preload="metadata"
                 playsInline
+                onPlay={(e) => pauseOtherVideos(e.currentTarget)}
                 className="w-full h-auto block"
               />
             ) : (
@@ -168,6 +170,7 @@ export default function WorkDetailPage() {
                       controls
                       preload="metadata"
                       playsInline
+                      onPlay={(e) => pauseOtherVideos(e.currentTarget)}
                       className="w-full h-full object-cover"
                     >
                       <source src={`${process.env.NEXT_PUBLIC_API_URL}${media.fileUrl}`} type="video/mp4" />
@@ -230,6 +233,7 @@ export default function WorkDetailPage() {
                                 controls
                                 preload="metadata"
                                 playsInline
+                                onPlay={(e) => pauseOtherVideos(e.currentTarget)}
                                 className="w-full h-full object-cover"
                               >
                                 <source src={`${process.env.NEXT_PUBLIC_API_URL}${media.fileUrl}`} type="video/mp4" />

@@ -7,6 +7,7 @@ import { portfolioAPI, WorkType, Client as APIClient, Work as APIWork } from "@/
 import { useLanguage } from "@/contexts/LanguageContext";
 import Masonry from "react-masonry-css";
 import Carousel from "@/components/ui/Carousel";
+import { pauseOtherVideos } from "@/lib/pauseOtherVideos";
 
 // Helper function to get full image URL
 const getImageUrl = (url?: string | null): string | undefined => {
@@ -293,6 +294,7 @@ export default function ClientDetailPage() {
                           controls
                           preload="metadata"
                           playsInline
+                          onPlay={(e) => pauseOtherVideos(e.currentTarget)}
                           className="w-full h-full object-contain bg-black"
                         >
                           <source src={getImageUrl(work.thumbnailUrl || work.mediaUrl)} type="video/mp4" />

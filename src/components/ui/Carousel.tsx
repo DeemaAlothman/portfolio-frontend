@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { pauseOtherVideos } from "@/lib/pauseOtherVideos";
 
 export interface CarouselItem {
   url: string;
@@ -35,7 +36,12 @@ export default function Carousel({ items, alt = "" }: CarouselProps) {
   return (
     <div className="relative w-full">
       {current.type === "VIDEO" ? (
-        <video src={current.url} controls className="w-full h-auto block" />
+        <video
+          src={current.url}
+          controls
+          onPlay={(e) => pauseOtherVideos(e.currentTarget)}
+          className="w-full h-auto block"
+        />
       ) : (
         <img src={current.url} alt={alt} className="w-full h-auto block" />
       )}
