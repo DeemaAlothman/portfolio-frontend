@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Masonry from "react-masonry-css";
 import Carousel from "@/components/ui/Carousel";
 import { pauseOtherVideos } from "@/lib/pauseOtherVideos";
+import { REEL_CATEGORIES, DESIGN_CATEGORIES, matchesCategory } from "@/lib/categoryOptions";
 
 // Helper function to get full image URL
 const getImageUrl = (url?: string | null): string | undefined => {
@@ -37,6 +38,7 @@ export default function ClientDetailPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [workTypeFilter, setWorkTypeFilter] = useState<WorkType | "ALL">("ALL");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
 
   useEffect(() => {
     loadClient();
@@ -93,6 +95,7 @@ export default function ClientDetailPage() {
       WEBSITE: "💻",
       SOCIAL_MEDIA: "📱",
       REEL: "🎬",
+      DESIGN: "🖼️",
     };
     return emojis[type as keyof typeof emojis] || "📁";
   };
@@ -100,10 +103,14 @@ export default function ClientDetailPage() {
   // Ensure works is always an array
   const clientWorks = Array.isArray(client?.works) ? client.works : [];
 
-  // Filter works based on selected type
-  const filteredWorks = clientWorks.filter((work: APIWork) =>
-    workTypeFilter === "ALL" || work.type === workTypeFilter
-  );
+  // Filter works based on selected type + sub-category (تصنيف الريلات/التصاميم)
+  const filteredWorks = clientWorks.filter((work: APIWork) => {
+    if (workTypeFilter !== "ALL" && work.type !== workTypeFilter) return false;
+    if ((workTypeFilter === "REEL" || workTypeFilter === "DESIGN") && categoryFilter) {
+      return matchesCategory(work.tag, categoryFilter, workTypeFilter);
+    }
+    return true;
+  });
 
   // Count works by type
   const workCounts = {
@@ -111,6 +118,7 @@ export default function ClientDetailPage() {
     WEBSITE: clientWorks.filter((w: APIWork) => w.type === "WEBSITE").length,
     SOCIAL_MEDIA: clientWorks.filter((w: APIWork) => w.type === "SOCIAL_MEDIA").length,
     REEL: clientWorks.filter((w: APIWork) => w.type === "REEL").length,
+    DESIGN: clientWorks.filter((w: APIWork) => w.type === "DESIGN").length,
   };
 
   if (loading) {
@@ -204,7 +212,7 @@ export default function ClientDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-wrap gap-3 justify-end">
             <button
-              onClick={() => setWorkTypeFilter("ALL")}
+              onClick={() => { setWorkTypeFilter("ALL"); setCategoryFilter(""); }}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
                 workTypeFilter === "ALL"
                   ? "bg-primary text-white shadow-soft"
@@ -214,7 +222,7 @@ export default function ClientDetailPage() {
               {t('clientDetail.filter.all')}
             </button>
             <button
-              onClick={() => setWorkTypeFilter("REEL")}
+              onClick={() => { setWorkTypeFilter("REEL"); setCategoryFilter(""); }}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
                 workTypeFilter === "REEL"
                   ? "bg-primary text-white shadow-soft"
@@ -224,7 +232,17 @@ export default function ClientDetailPage() {
               🎬 ريلات ({workCounts.REEL})
             </button>
             <button
-              onClick={() => setWorkTypeFilter("LOGO")}
+              onClick={() => { setWorkTypeFilter("DESIGN"); setCategoryFilter(""); }}
+              className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
+                workTypeFilter === "DESIGN"
+                  ? "bg-primary text-white shadow-soft"
+                  : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
+              }`}
+            >
+              🖼️ تصاميم ({workCounts.DESIGN})
+            </button>
+            <button
+              onClick={() => { setWorkTypeFilter("LOGO"); setCategoryFilter(""); }}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
                 workTypeFilter === "LOGO"
                   ? "bg-primary text-white shadow-soft"
@@ -234,17 +252,17 @@ export default function ClientDetailPage() {
               🎨 شعارات ({workCounts.LOGO})
             </button>
             <button
-              onClick={() => setWorkTypeFilter("SOCIAL_MEDIA")}
+              onClick={() => { setWorkTypeFilter("SOCIAL_MEDIA"); setCategoryFilter(""); }}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
                 workTypeFilter === "SOCIAL_MEDIA"
                   ? "bg-primary text-white shadow-soft"
                   : "bg-white border border-border text-foreground/70 hover:border-primary hover:text-primary"
               }`}
             >
-              📱 سوشيال ميديا ({workCounts.SOCIAL_MEDIA})
+              📱 تصاميم سوشيال ميديا ({workCounts.SOCIAL_MEDIA})
             </button>
             <button
-              onClick={() => setWorkTypeFilter("WEBSITE")}
+              onClick={() => { setWorkTypeFilter("WEBSITE"); setCategoryFilter(""); }}
               className={`px-6 py-2 rounded-full font-semibold text-sm transition-all ${
                 workTypeFilter === "WEBSITE"
                   ? "bg-primary text-white shadow-soft"
@@ -254,6 +272,25 @@ export default function ClientDetailPage() {
               💻 مواقع ({workCounts.WEBSITE})
             </button>
           </div>
+
+          {/* Sub-category chips - تظهر فقط عند اختيار ريلات أو تصاميم */}
+          {(workTypeFilter === "REEL" || workTypeFilter === "DESIGN") && (
+            <div className="flex flex-wrap gap-2 justify-end mt-3 pt-3 border-t border-border">
+              {(workTypeFilter === "REEL" ? REEL_CATEGORIES : DESIGN_CATEGORIES).map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setCategoryFilter(categoryFilter === category ? "" : category)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    categoryFilter === category
+                      ? "bg-primary text-white"
+                      : "bg-muted/30 text-foreground/70 hover:bg-muted/60"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

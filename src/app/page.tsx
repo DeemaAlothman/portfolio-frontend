@@ -8,9 +8,10 @@ import HeroSlider from "@/components/public/HeroSlider";
 import Masonry from "react-masonry-css";
 import Carousel from "@/components/ui/Carousel";
 import { pauseOtherVideos } from "@/lib/pauseOtherVideos";
+import { REEL_CATEGORIES, DESIGN_CATEGORIES } from "@/lib/categoryOptions";
 
 type ClientType = "COMPANY" | "INDIVIDUAL" | "ALL";
-type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "ALL";
+type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "DESIGN" | "ALL";
 
 // Helper function to get full image URL
 const getImageUrl = (url?: string | null): string | undefined => {
@@ -39,7 +40,7 @@ interface Work {
   id: string;
   title?: string | null;
   slug: string;
-  type: "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL";
+  type: "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "DESIGN";
   description?: string | null;
   thumbnailUrl?: string | null;
   mediaUrl?: string | null;
@@ -78,6 +79,7 @@ export default function Home() {
   const [hasMoreWorks, setHasMoreWorks] = useState(false);
   const [clientFilter, setClientFilter] = useState<ClientType>("ALL");
   const [workTypeFilter, setWorkTypeFilter] = useState<WorkType>("ALL");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
 
   useEffect(() => {
     if (workTypeFilter !== "ALL") {
@@ -85,7 +87,7 @@ export default function Home() {
     } else {
       loadClients();
     }
-  }, [clientFilter, workTypeFilter]);
+  }, [clientFilter, workTypeFilter, categoryFilter]);
 
   const loadClients = async () => {
     try {
@@ -115,6 +117,9 @@ export default function Home() {
       if (workTypeFilter !== "ALL") {
         filters.type = workTypeFilter as APIWorkType;
       }
+      if (categoryFilter) {
+        filters.tag = categoryFilter;
+      }
 
       const response = await portfolioAPI.getWorks(filters);
       const items = Array.isArray(response.data) ? response.data : [];
@@ -141,6 +146,9 @@ export default function Home() {
       if (workTypeFilter !== "ALL") {
         filters.type = workTypeFilter as APIWorkType;
       }
+      if (categoryFilter) {
+        filters.tag = categoryFilter;
+      }
 
       const response = await portfolioAPI.getWorks(filters);
       const items = Array.isArray(response.data) ? response.data : [];
@@ -159,6 +167,7 @@ export default function Home() {
       WEBSITE: "home.workType.website",
       SOCIAL_MEDIA: "home.workType.socialMedia",
       REEL: "home.workType.reel",
+      DESIGN: "home.workType.design",
     };
     return t(labels[type] || "home.workType.logo");
   };
@@ -169,6 +178,7 @@ export default function Home() {
       WEBSITE: "💻",
       SOCIAL_MEDIA: "📱",
       REEL: "🎬",
+      DESIGN: "🖼️",
     };
     return emojis[type as keyof typeof emojis] || "📁";
   };
@@ -186,6 +196,7 @@ export default function Home() {
               onClick={() => {
                 setClientFilter("ALL");
                 setWorkTypeFilter("ALL");
+                setCategoryFilter("");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
                 clientFilter === "ALL" && workTypeFilter === "ALL"
@@ -199,6 +210,7 @@ export default function Home() {
               onClick={() => {
                 setClientFilter("ALL");
                 setWorkTypeFilter("REEL");
+                setCategoryFilter("");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
                 workTypeFilter === "REEL"
@@ -211,7 +223,22 @@ export default function Home() {
             <button
               onClick={() => {
                 setClientFilter("ALL");
+                setWorkTypeFilter("DESIGN");
+                setCategoryFilter("");
+              }}
+              className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
+                workTypeFilter === "DESIGN"
+                  ? "bg-gradient-to-r from-primary to-secondary text-white shadow-hover scale-105"
+                  : "bg-white border-2 border-border text-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              🖼️ {t('home.workTypeButton.design')}
+            </button>
+            <button
+              onClick={() => {
+                setClientFilter("ALL");
                 setWorkTypeFilter("LOGO");
+                setCategoryFilter("");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
                 workTypeFilter === "LOGO"
@@ -225,6 +252,7 @@ export default function Home() {
               onClick={() => {
                 setClientFilter("ALL");
                 setWorkTypeFilter("SOCIAL_MEDIA");
+                setCategoryFilter("");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
                 workTypeFilter === "SOCIAL_MEDIA"
@@ -238,6 +266,7 @@ export default function Home() {
               onClick={() => {
                 setClientFilter("ALL");
                 setWorkTypeFilter("WEBSITE");
+                setCategoryFilter("");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
                 workTypeFilter === "WEBSITE"
@@ -251,6 +280,7 @@ export default function Home() {
               onClick={() => {
                 setClientFilter("COMPANY");
                 setWorkTypeFilter("ALL");
+                setCategoryFilter("");
               }}
               className={`px-8 py-4 rounded-full font-bold text-lg transition-all ${
                 clientFilter === "COMPANY"
@@ -261,6 +291,25 @@ export default function Home() {
               🏢 {t('home.filter.company')}
             </button>
           </div>
+
+          {/* Sub-category chips - تظهر فقط عند اختيار ريلات أو تصاميم */}
+          {(workTypeFilter === "REEL" || workTypeFilter === "DESIGN") && (
+            <div className="flex flex-wrap gap-2 justify-center mt-4 pt-4 border-t border-border">
+              {(workTypeFilter === "REEL" ? REEL_CATEGORIES : DESIGN_CATEGORIES).map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setCategoryFilter(categoryFilter === category ? "" : category)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                    categoryFilter === category
+                      ? "bg-primary text-white"
+                      : "bg-muted/30 text-foreground/70 hover:bg-muted/60"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

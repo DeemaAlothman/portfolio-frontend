@@ -1,6 +1,6 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-export type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL";
+export type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "DESIGN";
 export type WorkStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type CategoryType = "INDIVIDUAL" | "CORPORATE";
 

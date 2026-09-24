@@ -2,7 +2,7 @@
 // Public Portfolio API - No authentication required
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-export type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL";
+export type WorkType = "LOGO" | "WEBSITE" | "SOCIAL_MEDIA" | "REEL" | "DESIGN";
 export type ClientType = "COMPANY" | "INDIVIDUAL";
 export type WorkStatus = "PUBLISHED" | "DRAFT" | "ARCHIVED";
 
@@ -80,6 +80,7 @@ export interface PortfolioFilters {
   type?: WorkType;
   clientType?: ClientType;
   clientId?: string;
+  tag?: string;
   featured?: boolean;
   limit?: number;
   offset?: number;
@@ -141,6 +142,7 @@ export const portfolioAPI = {
       params.append("category", filters.clientType === "COMPANY" ? "CORPORATE" : "INDIVIDUAL");
     }
     if (filters?.clientId) params.append("companyId", filters.clientId);
+    if (filters?.tag) params.append("tag", filters.tag);
     if (filters?.featured !== undefined)
       params.append("featured", String(filters.featured));
     if (filters?.limit) params.append("limit", String(filters.limit));

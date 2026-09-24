@@ -118,8 +118,9 @@ function WorksContent() {
     const labels: Record<WorkType, string> = {
       LOGO: "شعار",
       WEBSITE: "موقع ويب",
-      SOCIAL_MEDIA: "سوشال ميديا",
+      SOCIAL_MEDIA: "تصاميم سوشيال ميديا",
       REEL: "ريل",
+      DESIGN: "تصميم",
     };
     return labels[type];
   };
@@ -184,8 +185,9 @@ function WorksContent() {
                 <option value="">الكل</option>
                 <option value="LOGO">شعار</option>
                 <option value="WEBSITE">موقع ويب</option>
-                <option value="SOCIAL_MEDIA">سوشال ميديا</option>
+                <option value="SOCIAL_MEDIA">تصاميم سوشيال ميديا</option>
                 <option value="REEL">ريل</option>
+                <option value="DESIGN">تصميم</option>
               </select>
             </div>
 
@@ -317,6 +319,7 @@ function WorksContent() {
                           {work.type === "WEBSITE" && "🌐"}
                           {work.type === "SOCIAL_MEDIA" && "📱"}
                           {work.type === "REEL" && "🎬"}
+                          {work.type === "DESIGN" && "🖼️"}
                         </span>
                       </div>
                     )}

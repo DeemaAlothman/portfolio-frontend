@@ -7,6 +7,7 @@ import Input from "@/components/auth/Input";
 import Button from "@/components/auth/Button";
 import { worksAPI, CreateWorkData, Work, WorkType, CategoryType } from "@/lib/services/worksAPI";
 import { clientsAPI, Client } from "@/lib/services/clientsAPI";
+import { REEL_CATEGORIES, DESIGN_CATEGORIES } from "@/lib/categoryOptions";
 
 interface WorkFormProps {
   work?: Work;
@@ -133,6 +134,12 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
     if (formData.type === "LOGO" && mode === "create" && files.length === 0) {
       newErrors.files = "يجب رفع صورة واحدة على الأقل";
       setError("يجب رفع صورة واحدة على الأقل للشعار");
+    }
+
+    // للتصاميم: صورة إلزامية (يقبل ملفات متعددة)
+    if (formData.type === "DESIGN" && mode === "create" && files.length === 0) {
+      newErrors.files = "يجب رفع صورة واحدة على الأقل";
+      setError("يجب رفع صورة واحدة على الأقل للتصاميم");
     }
 
     setErrors(newErrors);
@@ -391,8 +398,9 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           >
             <option value="LOGO">شعار</option>
             <option value="WEBSITE">موقع ويب</option>
-            <option value="SOCIAL_MEDIA">سوشال ميديا</option>
+            <option value="SOCIAL_MEDIA">تصاميم سوشيال ميديا</option>
             <option value="REEL">ريل</option>
+            <option value="DESIGN">تصميم</option>
           </select>
         </div>
 
@@ -406,15 +414,37 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           error={errors.title}
         />
 
-        {/* Tag */}
-        <Input
-          label="الوسم (اختياري)"
-          type="text"
-          placeholder="مثال: موشن جرافيك، تصميم شعارات، إلخ"
-          value={formData.tag}
-          onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-          error={errors.tag}
-        />
+        {/* Tag / التصنيف الفرعي */}
+        {formData.type === "REEL" || formData.type === "DESIGN" ? (
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              التصنيف (اختياري - "أخرى" افتراضياً)
+            </label>
+            <select
+              value={formData.tag}
+              onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+              className="w-full px-4 py-3 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            >
+              <option value="">أخرى (بدون تصنيف)</option>
+              {(formData.type === "REEL" ? REEL_CATEGORIES : DESIGN_CATEGORIES)
+                .filter((c) => c !== "أخرى")
+                .map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+            </select>
+          </div>
+        ) : (
+          <Input
+            label="الوسم (اختياري)"
+            type="text"
+            placeholder="مثال: موشن جرافيك، تصميم شعارات، إلخ"
+            value={formData.tag}
+            onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+            error={errors.tag}
+          />
+        )}
 
         {/* Website URL - يظهر فقط للمواقع الإلكترونية */}
         {formData.type === "WEBSITE" && (
@@ -449,6 +479,7 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           {formData.type === "LOGO" && (mode === "create" ? "رفع الشعارات (حتى 10 ملفات - كل شعار = بطاقة منفصلة)" : "استبدال الشعار")}
           {formData.type === "WEBSITE" && "رفع صورة الموقع"}
           {formData.type === "SOCIAL_MEDIA" && (mode === "create" ? "رفع الصور (حتى 10 ملفات - كل صورة = بطاقة منفصلة)" : "استبدال الصورة")}
+          {formData.type === "DESIGN" && (mode === "create" ? "رفع التصاميم (حتى 10 ملفات - كل تصميم = بطاقة منفصلة)" : "استبدال التصميم")}
         </h3>
 
         {/* Single File Upload (WEBSITE, or EDIT mode for any type) */}
