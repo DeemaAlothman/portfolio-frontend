@@ -349,12 +349,6 @@ export default function ClientDetailPage() {
                         </span>
                       )}
 
-                      {/* Work Type Badge - Only show if tag exists */}
-                      {work.tag && (
-                        <div className="absolute top-4 right-4 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-full text-sm font-semibold text-primary shadow-soft z-10">
-                          {work.tag}
-                        </div>
-                      )}
                     </div>
 
                     {/* Work Info */}
@@ -363,6 +357,13 @@ export default function ClientDetailPage() {
                         <h3 className="font-bold text-foreground text-lg mb-2 line-clamp-2">
                           {work.title}
                         </h3>
+                      )}
+
+                      {/* Work Type Badge - Only show if tag exists */}
+                      {work.tag && (
+                        <span className="inline-block px-3 py-1 mb-2 bg-primary/10 rounded-full text-xs font-semibold text-primary">
+                          {work.tag}
+                        </span>
                       )}
 
                       {/* Description */}
