@@ -275,12 +275,12 @@ export default function ClientDetailPage() {
 
           {/* Sub-category chips - تظهر فقط عند اختيار ريلات أو تصاميم */}
           {(workTypeFilter === "REEL" || workTypeFilter === "DESIGN") && (
-            <div className="flex flex-wrap gap-2 justify-end mt-3 pt-3 border-t border-border">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mt-3 pt-3 border-t border-border">
               {(workTypeFilter === "REEL" ? REEL_CATEGORIES : DESIGN_CATEGORIES).map((category) => (
                 <button
                   key={category}
                   onClick={() => setCategoryFilter(categoryFilter === category ? "" : category)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold text-center truncate transition-all ${
                     categoryFilter === category
                       ? "bg-primary text-white"
                       : "bg-muted/30 text-foreground/70 hover:bg-muted/60"
@@ -301,7 +301,7 @@ export default function ClientDetailPage() {
             <>
             <Masonry
               breakpointCols={workTypeFilter === "REEL"
-                ? { default: 4, 1024: 3, 768: 2, 640: 2 }
+                ? { default: 4, 1024: 3, 768: 2, 640: 1 }
                 : { default: 3, 1024: 3, 768: 2, 640: 1 }
               }
               className="flex gap-8"
