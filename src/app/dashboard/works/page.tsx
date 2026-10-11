@@ -339,6 +339,11 @@ function WorksContent() {
                         <p className="text-sm text-foreground/70">
                           <span className="font-medium">النوع:</span> {getTypeLabel(work.type)}
                         </p>
+                        {work.tag && (
+                          <p className="text-sm text-foreground/70">
+                            <span className="font-medium">التصنيف:</span> {work.tag}
+                          </p>
+                        )}
                         {work.company && (
                           <p className="text-sm text-foreground/70">
                             <span className="font-medium">الشركة:</span> {work.company.name}
