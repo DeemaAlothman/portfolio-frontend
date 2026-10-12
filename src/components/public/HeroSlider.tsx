@@ -8,8 +8,8 @@ const HeroSlider = () => {
 
   return (
     <div className="relative w-full overflow-hidden shadow-xl border-b-4 border-primary/20">
-      {/* نسخة طولية للموبايل - ارتفاعها حسب نسبة الصورة، مش كامل الشاشة */}
-      <div className="relative w-full aspect-[9/16] md:hidden">
+      {/* نسخة طولية للموبايل - ارتفاع ثابت بالبكسل (مش نسبة من عرض الشاشة) عشان يتناسق مع تكبير/تصغير المتصفح متل التصميم القديم */}
+      <div className="relative w-full h-[450px] sm:h-[550px] md:hidden">
         <Image
           src="/marketing-banner-mobile.jpg"
           alt={t('home.marketing.title')}
@@ -19,7 +19,7 @@ const HeroSlider = () => {
         />
       </div>
       {/* نسخة عرضية للابتوب/ديسكتوب */}
-      <div className="relative w-full aspect-video hidden md:block">
+      <div className="relative w-full h-[500px] lg:h-[650px] hidden md:block">
         <Image
           src="/marketing-banner-desktop.jpg"
           alt={t('home.marketing.title')}
