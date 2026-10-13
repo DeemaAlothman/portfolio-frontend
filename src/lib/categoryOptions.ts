@@ -10,6 +10,7 @@ export const REEL_CATEGORIES = [
   "برومو",
   "ريلات محتوى",
   "موشن",
+  "بودكاست",
   "أخرى",
 ] as const;
 
