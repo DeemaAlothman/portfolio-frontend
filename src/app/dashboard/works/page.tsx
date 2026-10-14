@@ -29,6 +29,9 @@ function WorksContent() {
     isOpen: false,
     work: null,
   });
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteModal, setBulkDeleteModal] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     loadWorks();
@@ -38,6 +41,11 @@ function WorksContent() {
   useEffect(() => {
     setPage(1);
   }, [filters]);
+
+  // التحديد مرتبط بالصفحة الحالية بس - أي تغيير فلتر/صفحة بيصفّر التحديد
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [filters, page]);
 
   useEffect(() => {
     loadClientOptions();
@@ -112,6 +120,47 @@ function WorksContent() {
       setError(err.message || "فشل حذف العمل");
       setDeleteModal({ isOpen: false, work: null });
     }
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) =>
+      prev.size === works.length ? new Set() : new Set(works.map((w) => w.id))
+    );
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    setBulkDeleting(true);
+    setError("");
+    const ids = Array.from(selectedIds);
+    const failedIds: string[] = [];
+
+    for (const id of ids) {
+      try {
+        await worksAPI.delete(id);
+      } catch {
+        failedIds.push(id);
+      }
+    }
+
+    setWorks((prev) => prev.filter((w) => failedIds.includes(w.id) || !ids.includes(w.id)));
+    setSelectedIds(new Set(failedIds));
+    setTotalWorks((prev) => prev - (ids.length - failedIds.length));
+
+    if (failedIds.length > 0) {
+      setError(`تم حذف ${ids.length - failedIds.length} من ${ids.length}. فشل حذف ${failedIds.length} عمل، جرّبي مرة ثانية.`);
+    }
+
+    setBulkDeleting(false);
+    setBulkDeleteModal(false);
   };
 
   const getTypeLabel = (type: WorkType) => {
@@ -262,6 +311,25 @@ function WorksContent() {
           </div>
         ) : (
           <>
+            {/* Bulk Selection Toolbar */}
+            {works.length > 0 && (
+              <div className="flex items-center justify-between mb-4 p-3 bg-white rounded-lg border-2 border-border">
+                <button
+                  onClick={toggleSelectAll}
+                  className="px-4 py-2 rounded-lg border-2 border-border text-foreground hover:bg-accent transition-colors text-sm"
+                >
+                  {selectedIds.size === works.length ? "إلغاء تحديد الكل" : `تحديد الكل بهالصفحة (${works.length})`}
+                </button>
+                <button
+                  onClick={() => setBulkDeleteModal(true)}
+                  disabled={selectedIds.size === 0}
+                  className="px-4 py-2 rounded-lg border-2 border-error text-error hover:bg-error/10 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  حذف المحدد ({selectedIds.size})
+                </button>
+              </div>
+            )}
+
             {/* Works Grid */}
             {works.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg border-2 border-border">
@@ -282,8 +350,20 @@ function WorksContent() {
                   return (
                   <div
                     key={work.id}
-                    className="bg-white rounded-lg border-2 border-border hover:shadow-lg transition-all overflow-hidden"
+                    className={`relative bg-white rounded-lg border-2 hover:shadow-lg transition-all overflow-hidden ${
+                      selectedIds.has(work.id) ? "border-primary" : "border-border"
+                    }`}
                   >
+                    {/* Select checkbox */}
+                    <label className="absolute top-2 left-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-soft cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(work.id)}
+                        onChange={() => toggleSelected(work.id)}
+                        className="w-4 h-4 cursor-pointer accent-primary"
+                      />
+                    </label>
+
                     {/* Image/Video */}
                     {work.mediaUrls && work.mediaUrls.length > 1 ? (
                       <div className="bg-secondary relative">
@@ -429,6 +509,18 @@ function WorksContent() {
         title="حذف العمل"
         message={`هل أنت متأكد من حذف العمل "${deleteModal.work?.title || 'بدون عنوان'}"؟\n\nسيتم حذف العمل نهائياً ولا يمكن التراجع عن هذا الإجراء.`}
         confirmText="حذف"
+        cancelText="إلغاء"
+        variant="danger"
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={bulkDeleteModal}
+        onClose={() => setBulkDeleteModal(false)}
+        onConfirm={handleBulkDeleteConfirm}
+        title="حذف الأعمال المحددة"
+        message={`هل أنت متأكد من حذف ${selectedIds.size} عمل؟\n\nسيتم حذف كل الأعمال المحددة نهائياً ولا يمكن التراجع عن هذا الإجراء.${bulkDeleting ? "\n\nجاري الحذف..." : ""}`}
+        confirmText={bulkDeleting ? "جاري الحذف..." : "حذف الكل"}
         cancelText="إلغاء"
         variant="danger"
       />
