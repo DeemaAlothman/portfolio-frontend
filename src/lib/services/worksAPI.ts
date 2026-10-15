@@ -47,6 +47,7 @@ export interface WorksFilters {
   category?: CategoryType;
   companyId?: string;
   clientName?: string;
+  tag?: string;
   limit?: number;
   offset?: number;
 }
@@ -118,6 +119,7 @@ export const worksAPI = {
     if (filters?.category) params.append("category", filters.category);
     if (filters?.companyId) params.append("companyId", filters.companyId);
     if (filters?.clientName) params.append("clientName", filters.clientName);
+    if (filters?.tag) params.append("tag", filters.tag);
     if (filters?.limit) params.append("limit", String(filters.limit));
     if (filters?.offset) params.append("offset", String(filters.offset));
 

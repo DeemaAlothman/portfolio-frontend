@@ -8,6 +8,7 @@ import { clientsAPI, Client } from "@/lib/services/clientsAPI";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Carousel from "@/components/ui/Carousel";
 import Link from "next/link";
+import { REEL_CATEGORIES, DESIGN_CATEGORIES } from "@/lib/categoryOptions";
 
 const PAGE_SIZE = 12;
 
@@ -24,6 +25,7 @@ function WorksContent() {
     category: "" as CategoryType | "",
     // قيمة الفلتر الموحّد: "company:<id>" للشركات أو "individual:<name>" للأفراد
     client: "" as string,
+    tag: "" as string,
   });
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; work: Work | null }>({
     isOpen: false,
@@ -89,6 +91,7 @@ function WorksContent() {
         ...(filters.category && { category: filters.category as CategoryType }),
         ...(clientKind === "company" && { companyId: clientValue }),
         ...(clientKind === "individual" && { clientName: clientValue }),
+        ...((filters.type === "REEL" || filters.type === "DESIGN") && filters.tag && { tag: filters.tag }),
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
       });
@@ -228,7 +231,7 @@ function WorksContent() {
               </label>
               <select
                 value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value as WorkType | "" })}
+                onChange={(e) => setFilters({ ...filters, type: e.target.value as WorkType | "", tag: "" })}
                 className="w-full px-4 py-2 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none"
               >
                 <option value="">الكل</option>
@@ -239,6 +242,26 @@ function WorksContent() {
                 <option value="DESIGN">تصميم</option>
               </select>
             </div>
+
+            {(filters.type === "REEL" || filters.type === "DESIGN") && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  التصنيف الفرعي
+                </label>
+                <select
+                  value={filters.tag}
+                  onChange={(e) => setFilters({ ...filters, tag: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg bg-input-bg text-foreground border-2 border-border focus:border-primary focus:outline-none"
+                >
+                  <option value="">الكل</option>
+                  {(filters.type === "REEL" ? REEL_CATEGORIES : DESIGN_CATEGORIES).map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
@@ -288,7 +311,7 @@ function WorksContent() {
 
             <div className="flex items-end">
               <button
-                onClick={() => setFilters({ type: "", category: "", client: "" })}
+                onClick={() => setFilters({ type: "", category: "", client: "", tag: "" })}
                 className="w-full px-4 py-2 rounded-lg border-2 border-border text-foreground hover:bg-accent transition-colors"
               >
                 إعادة تعيين
