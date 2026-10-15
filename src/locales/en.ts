@@ -39,6 +39,7 @@ export const en = {
   'home.clientType.individual': 'Individual Client',
   'home.viewWorks': 'View Works',
   'home.visitWebsite': 'Visit Website',
+  'home.viewLink': 'View Link',
   'home.views': 'views',
   'home.videoNotSupported': 'Your browser does not support video playback',
   'home.cta.title': 'Want to Be One of Our Clients?',

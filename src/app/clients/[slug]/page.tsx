@@ -338,11 +338,26 @@ export default function ClientDetailPage() {
                           متصفحك لا يدعم تشغيل الفيديو
                         </video>
                       ) : (work.thumbnailUrl || work.mediaUrl) ? (
-                        <img
-                          src={getImageUrl(work.thumbnailUrl || work.mediaUrl)}
-                          alt={work.title || ''}
-                          className="w-full h-auto group-hover:scale-110 transition-transform duration-300"
-                        />
+                        work.websiteUrl ? (
+                          <a
+                            href={work.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <img
+                              src={getImageUrl(work.thumbnailUrl || work.mediaUrl)}
+                              alt={work.title || ''}
+                              className="w-full h-auto group-hover:scale-110 transition-transform duration-300 cursor-pointer"
+                            />
+                          </a>
+                        ) : (
+                          <img
+                            src={getImageUrl(work.thumbnailUrl || work.mediaUrl)}
+                            alt={work.title || ''}
+                            className="w-full h-auto group-hover:scale-110 transition-transform duration-300"
+                          />
+                        )
                       ) : (
                         <span className="text-6xl">
                           {getWorkTypeEmoji(work.type)}
@@ -373,8 +388,8 @@ export default function ClientDetailPage() {
                         </p>
                       )}
 
-                      {/* Website URL for WEBSITE type */}
-                      {work.type === "WEBSITE" && work.websiteUrl && (
+                      {/* رابط إضافي اختياري - لأي نوع عمل */}
+                      {work.websiteUrl && (
                         <a
                           href={work.websiteUrl}
                           target="_blank"
@@ -382,7 +397,7 @@ export default function ClientDetailPage() {
                           className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-semibold mb-2"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          🌐 {t('home.visitWebsite')}
+                          🔗 {work.type === "WEBSITE" ? t('home.visitWebsite') : t('home.viewLink')}
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>

@@ -446,17 +446,15 @@ export default function WorkForm({ work, mode }: WorkFormProps) {
           />
         )}
 
-        {/* Website URL - يظهر فقط للمواقع الإلكترونية */}
-        {formData.type === "WEBSITE" && (
-          <Input
-            label="رابط الموقع *"
-            type="url"
-            placeholder="https://example.com"
-            value={formData.websiteUrl}
-            onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-            error={errors.websiteUrl}
-          />
-        )}
+        {/* Website URL - إلزامي للمواقع، اختياري لباقي الأنواع (مثلاً رابط مجلد ملفات، صفحة خارجية...) */}
+        <Input
+          label={formData.type === "WEBSITE" ? "رابط الموقع *" : "رابط إضافي (اختياري)"}
+          type="url"
+          placeholder={formData.type === "WEBSITE" ? "https://example.com" : "مثلاً رابط مجلد يحتوي كل الملفات"}
+          value={formData.websiteUrl}
+          onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+          error={errors.websiteUrl}
+        />
       </div>
 
       {/* Description */}

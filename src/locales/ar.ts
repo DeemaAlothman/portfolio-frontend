@@ -39,6 +39,7 @@ export const ar = {
   'home.clientType.individual': 'عميل فردي',
   'home.viewWorks': 'عرض الأعمال',
   'home.visitWebsite': 'زيارة الموقع',
+  'home.viewLink': 'عرض الرابط',
   'home.views': 'مشاهدة',
   'home.videoNotSupported': 'متصفحك لا يدعم تشغيل الفيديو',
   'home.cta.title': 'هل تريد أن تكون من عملائنا؟',
