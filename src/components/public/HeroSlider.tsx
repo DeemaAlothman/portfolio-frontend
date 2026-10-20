@@ -7,7 +7,7 @@ const HeroSlider = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden shadow-xl border-b-4 border-primary/20">
       {/* نسخة طولية للموبايل - خلفية ضبابية من نفس الصورة (بدل لون مسطح) + الصورة كاملة بدون قص فوقها */}
       <div className="relative w-full h-[450px] sm:h-[550px] md:hidden">
         <Image
