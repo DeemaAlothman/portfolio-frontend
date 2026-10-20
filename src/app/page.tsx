@@ -190,7 +190,7 @@ export default function Home() {
 
       {/* Client Type Filter Tabs */}
       <section className="bg-background border-b-2 border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-6">
           <div className="flex flex-wrap gap-4 justify-center">
             <button
               onClick={() => {
