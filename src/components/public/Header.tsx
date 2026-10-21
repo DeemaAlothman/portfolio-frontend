@@ -20,6 +20,11 @@ export default function Header() {
     { href: "https://rastaka.net/services", labelKey: "header.nav.services" as const, external: true },
     { href: "/", labelKey: "header.nav.portfolio" as const, external: false },
     {
+      href: "https://digital.rastaka.net/",
+      labelKey: "header.nav.digitalProducts" as const,
+      external: true,
+    },
+    {
       href: "https://rastaka.net/about-rastaka/",
       labelKey: "header.nav.about" as const,
       external: true,

@@ -5,6 +5,7 @@ export const ar = {
   'header.nav.home': 'الرئيسية',
   'header.nav.services': 'الخدمات',
   'header.nav.portfolio': 'معرض أعمالنا',
+  'header.nav.digitalProducts': 'منتجاتنا الرقمية',
   'header.nav.about': 'عن رستقة',
   'header.nav.blog': 'المدونة',
   'header.nav.contact': 'تواصل معنا',

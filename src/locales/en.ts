@@ -5,6 +5,7 @@ export const en = {
   'header.nav.home': 'Home page',
   'header.nav.services': 'Our services',
   'header.nav.portfolio': 'Portfolio',
+  'header.nav.digitalProducts': 'Our Digital Products',
   'header.nav.about': 'About Rustaka',
   'header.nav.blog': 'Articles page',
   'header.nav.contact': 'Contact Us',
