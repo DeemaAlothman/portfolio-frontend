@@ -25,17 +25,17 @@ const HeroSlider = () => {
           priority
         />
       </div>
-      {/* نسخة عرضية للابتوب/ديسكتوب */}
+      {/* نسخة عرضية للابتوب/ديسكتوب - نسخة عالية الدقة 1920x1080 */}
       <div className="relative w-full h-[500px] lg:h-[650px] hidden md:block">
         <Image
-          src="/marketing-banner-desktop.jpg"
+          src="/marketing-banner-desktop-hd.png"
           alt=""
           aria-hidden="true"
           fill
           className="object-cover blur-2xl scale-110"
         />
         <Image
-          src="/marketing-banner-desktop.jpg"
+          src="/marketing-banner-desktop-hd.png"
           alt={t('home.marketing.title')}
           fill
           className="relative object-contain"
