@@ -18,12 +18,12 @@ export default function Header() {
   const navLinks = [
     { href: "https://rastaka.net/", labelKey: "header.nav.home" as const, external: true },
     { href: "https://rastaka.net/services", labelKey: "header.nav.services" as const, external: true },
-    { href: "/", labelKey: "header.nav.portfolio" as const, external: false },
     {
       href: "https://digital.rastaka.net/",
       labelKey: "header.nav.digitalProducts" as const,
       external: true,
     },
+    { href: "/", labelKey: "header.nav.portfolio" as const, external: false },
     {
       href: "https://rastaka.net/about-rastaka/",
       labelKey: "header.nav.about" as const,
