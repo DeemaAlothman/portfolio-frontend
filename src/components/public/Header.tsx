@@ -99,11 +99,8 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <Link
-              href="/"
-              className="text-3xl font-bold text-[#007F7F] tracking-tight hover:text-[#007F7F]/80 transition-colors"
-            >
-              {t('header.logo')}
+            <Link href="/" className="opacity-100 hover:opacity-80 transition-opacity">
+              <img src="/logo-rastaka.png" alt={t('header.logo')} className="h-10 w-auto" />
             </Link>
 
             {/* Desktop Nav */}
