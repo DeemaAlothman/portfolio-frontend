@@ -57,11 +57,11 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center text-sm font-bold">
           <div className="flex items-center gap-6">
             <a
-              href="tel:+963991332241"
+              href="tel:+963936464307"
               className="flex items-center gap-2 hover:text-[#007F7F] transition-colors"
             >
               <Phone className="w-4 h-4" />
-              <span className="hidden sm:inline" dir="ltr">+963 991 332 241</span>
+              <span className="hidden sm:inline" dir="ltr">+963 936 464 307</span>
             </a>
             <a
               href="mailto:info@rastaka.net"
